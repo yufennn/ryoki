@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>旅跡 Ryoki</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage:        #7a9e84;
+  --sage-mid:    #a8c4ae;
+  --sage-light:  #cddfd0;
+  --sage-pale:   #eaf2eb;
+  --stone:       #8c8479;
+  --stone-mid:   #b5afa6;
+  --stone-light: #d6d1ca;
+  --stone-pale:  #f2ede8;
+  --ink:         #25241f;
+  --ink-soft:    #46443e;
+  --ink-mid:     #6e6b63;
+  --ink-muted:   #9e9b93;
+  --cream:       #f8f5f0;
+  --white:       #ffffff;
+  --warn:        #c47b4a;
+  --warn-pale:   #faf0e8;
+  --rule:        rgba(37,36,31,0.09);
+  --rule-soft:   rgba(37,36,31,0.05);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  height:100%;
+  font-family:'Noto Sans TC',sans-serif;
+  font-weight:300;
+  background:#e8e4de;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ── phone shell ── */
+.phone{
+  width:390px;
+  height:844px;
+  background:var(--cream);
+  border-radius:52px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.08);
+}
+
+/* dynamic island */
+.island{
+  position:absolute;
+  top:12px; left:50%;
+  transform:translateX(-50%);
+  width:120px; height:34px;
+  background:#111;
+  border-radius:20px;
+  z-index:200;
+}
+
+/* ── screens ── */
+.screen{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  transition:opacity .35s ease, transform .35s ease;
+  background:var(--cream);
+}
+.screen.off{opacity:0;pointer-events:none;transform:translateX(22px);}
+.screen.off.back{transform:translateX(-22px);}
+
+.scroll-area{
+  position:absolute;
+  top:0; left:0; right:0; bottom:72px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.scroll-area::-webkit-scrollbar{display:none;}
+
+/* ── bottom nav ── */
+.nav{
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:72px;
+  background:rgba(248,245,240,0.94);
+  backdrop-filter:blur(16px);
+  border-top:1px solid var(--rule);
+  display:flex;
+  align-items:flex-start;
+  padding-top:10px;
+  z-index:100;
+}
+.nav-tab{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+  color:var(--stone-mid);
+  font-size:10px;
+  letter-spacing:0.06em;
+  transition:color .2s;
+  padding-top:2px;
+}
+.nav-tab.on{color:var(--sage);}
+.nav-tab svg{transition:transform .2s;}
+.nav-tab:active svg{transform:scale(.85);}
+
+/* ── status bar ── */
+.sb{
+  height:54px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  padding:0 28px 8px;
+  font-size:12px;
+  font-weight:400;
+  color:var(--ink-soft);
+  flex-shrink:0;
+}
+
+/* ════════════════════
+   HOME SCREEN
+════════════════════ */
+#home .scroll-area{bottom:72px;}
+
+.home-hero{
+  margin:0 20px 0;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:24px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* top band – trip switcher */
+.trip-switcher{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--rule-soft);
+  cursor:pointer;
+}
+.ts-left{display:flex;align-items:center;gap:8px;}
+.ts-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--sage);
+  flex-shrink:0;
+}
+.ts-name{
+  font-family:'Noto Serif TC',serif;
+  font-size:14px;
+  color:var(--ink);
+}
+.ts-sub{font-size:11px;color:var(--ink-muted);margin-top:1px;}
+.ts-chevron{color:var(--ink-muted);}
+
+/* weather band */
+.weather-band{
+  display:flex;
+  align-items:center;
+  padding:14px 18px;
+  gap:14px;
+  border-bottom:1px solid var(--rule-soft);
+}
+.w-icon{
+  width:44px;height:44px;
+  background:var(--sage-pale);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.w-main{flex:1;}
+.w-temp{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;
+  font-weight:300;
+  color:var(--ink);
+  line-height:1;
+}
+.w-desc{font-size:12px;color:var(--ink-mid);margin-top:3px;}
+.w-outfit{
+  font-size:11px;
+  color:var(--sage);
+  background:var(--sage-pale);
+  border:1px solid var(--sage-light);
+  border-radius:20px;
+  padding:4px 10px;
+  white-space:nowrap;
+}
+.w-rain{
+  display:flex;align-items:center;gap:4px;
+  font-size:11px;color:var(--warn);
+  margin-top:4px;
+}
+
+/* today spend */
+.spend-band{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 18px;
+}
+.sb-label{font-size:11px;color:var(--ink-muted);letter-spacing:0.08em;}
+.sb-val{font-size:14px;color:var(--ink-soft);}
+.spend-bar-track{
+  height:3px;
+  background:var(--rule);
+  border-radius:2px;
+  margin:6px 18px 14px;
+  overflow:hidden;
+}
+.spend-bar-fill{
+  height:100%;
+  width:62%;
+  background:var(--sage-mid);
+  border-radius:2px;
+  animation:barIn .8s ease both .2s;
+}
+@keyframes barIn{from{width:0}to{width:62%}}
+
+/* section header */
+.sec-hd{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px 24px 12px;
+}
+.sec-title{
+  font-size:10px;
+  letter-spacing:0.2em;
+  color:var(--ink-muted);
+  text-transform:uppercase;
+}
+.sec-link{font-size:12px;color:var(--sage);cursor:pointer;}
+
+/* today timeline strip */
+.today-strip{padding:0 20px;}
+.tl-row{
+  display:flex;
+  gap:12px;
+  margin-bottom:2px;
+  cursor:pointer;
+  animation:fadeUp .4s ease both;
+}
+.tl-row:nth-child(1){animation-delay:.05s}
+.tl-row:nth-child(2){animation-delay:.1s}
+.tl-row:nth-child(3){animation-delay:.15s}
+.tl-row:nth-child(4){animation-delay:.2s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.tl-spine{
+  display:flex;flex-direction:column;align-items:center;
+  width:34px;flex-shrink:0;padding-top:14px;
+}
+.tl-t{font-size:10px;color:var(--ink-muted);white-space:nowrap;}
+.tl-node{
+  width:9px;height:9px;border-radius:50%;
+  border:1.5px solid var(--sage-light);
+  background:var(--cream);
+  margin:5px 0 0;flex-shrink:0;
+}
+.tl-node.done{background:var(--sage-light);}
+.tl-stem{width:1px;flex:1;min-height:16px;background:var(--rule-soft);margin-top:2px;}
+
+.tl-card{
+  flex:1;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:8px;
+  transition:border-color .2s;
+}
+.tl-card:active{border-color:var(--sage-light);}
+.tl-card.now{border-color:var(--sage-light);background:var(--sage-pale);}
+.tl-type{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;letter-spacing:0.1em;
+  color:var(--ink-muted);margin-bottom:4px;
+}
+.tl-name{font-size:13px;color:var(--ink);line-height:1.35;}
+.tl-sub{font-size:11px;color:var(--ink-muted);margin-top:3px;}
+.tl-cost{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:11px;color:var(--stone);
+  background:var(--stone-pale);
+  border:1px solid var(--stone-light);
+  border-radius:6px;padding:2px 8px;
+  margin-top:6px;
+}
+
+/* flight card */
+.flight-card{
+  margin:0 20px 8px;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:16px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:border-color .2s;
+}
+.flight-card:active{border-color:var(--sage-light);}
+.fc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.fc-badge{
+  font-size:10px;letter-spacing:0.1em;
+  color:var(--sage);
+  background:var(--sage-pale);
+  border:1px solid var(--sage-light);
+  border-radius:20px;padding:3px 9px;
+}
+.fc-num{font-size:12px;color:var(--ink-mid);}
+.fc-route{display:flex;align-items:center;gap:8px;}
+.fc-city{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:300;
+  color:var(--ink);line-height:1;
+}
+.fc-arrow{flex:1;display:flex;align-items:center;gap:0;}
+.fc-line{flex:1;height:1px;background:var(--sage-light);}
+.fc-plane{color:var(--sage-mid);margin:0 4px;}
+.fc-times{display:flex;justify-content:space-between;margin-top:6px;}
+.fc-time-blk{text-align:center;}
+.fc-time{font-size:13px;color:var(--ink-soft);}
+.fc-apt{font-size:10px;color:var(--ink-muted);margin-top:1px;}
+.fc-status{
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  margin-top:10px;font-size:11px;color:var(--ink-muted);
+}
+.fc-dot-ok{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+
+.pad-bottom{height:24px;}
+
+/* ════════════════════
+   DETAIL SCREEN
+════════════════════ */
+.det-header{
+  display:flex;align-items:center;gap:12px;
+  padding:4px 20px 0;
+}
+.back-btn{
+  width:36px;height:36px;
+  border:1px solid var(--rule);
+  border-radius:50%;
+  background:transparent;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-soft);
+  flex-shrink:0;
+  transition:background .2s;
+}
+.back-btn:active{background:var(--sage-pale);}
+.det-title-blk{flex:1;}
+.det-title{
+  font-family:'Noto Serif TC',serif;
+  font-size:17px;color:var(--ink);
+}
+.det-sub{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.more-btn{
+  width:34px;height:34px;
+  border:1px solid var(--rule);
+  border-radius:50%;
+  background:transparent;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-soft);
+}
+
+/* summary pills */
+.sum-row{
+  display:flex;gap:8px;
+  padding:14px 20px 0;
+  overflow-x:auto;scrollbar-width:none;
+}
+.sum-row::-webkit-scrollbar{display:none;}
+.sum-pill{
+  flex-shrink:0;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:12px;
+  padding:10px 14px;
+  text-align:center;
+  min-width:70px;
+}
+.sum-val{font-size:16px;color:var(--ink);font-weight:400;}
+.sum-key{font-size:10px;color:var(--ink-muted);letter-spacing:0.06em;margin-top:2px;}
+
+/* tabs */
+.tabs{
+  display:flex;
+  padding:14px 20px 0;
+  gap:2px;
+  border-bottom:1px solid var(--rule);
+}
+.tab{
+  padding:8px 12px;
+  font-size:13px;color:var(--ink-muted);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  transition:color .2s, border-color .2s;
+  white-space:nowrap;
+}
+.tab.on{color:var(--sage);border-bottom-color:var(--sage);}
+
+.tab-panel{display:none;}
+.tab-panel.on{display:block;}
+
+/* detail timeline */
+.det-tl{padding:4px 20px 100px;}
+.day-hd{
+  display:flex;align-items:center;gap:10px;
+  padding:18px 0 12px;
+  font-size:10px;letter-spacing:0.18em;
+  color:var(--ink-muted);text-transform:uppercase;
+}
+.day-hd::after{content:'';flex:1;height:1px;background:var(--rule-soft);}
+
+/* ════════════════════
+   EXPENSE SCREEN
+════════════════════ */
+.exp-header{padding:4px 20px 0;}
+.exp-h1{
+  font-family:'Noto Serif TC',serif;
+  font-size:20px;color:var(--ink);
+  padding:4px 20px 0;
+}
+
+/* donut chart area */
+.donut-wrap{
+  margin:14px 20px 0;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:20px;
+  padding:20px;
+}
+.donut-inner{
+  display:flex;align-items:center;gap:20px;
+}
+.donut-svg{flex-shrink:0;}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:9px;}
+.leg-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.leg-name{font-size:12px;color:var(--ink-mid);flex:1;}
+.leg-val{font-size:12px;color:var(--ink-soft);}
+.leg-pct{font-size:11px;color:var(--ink-muted);min-width:28px;text-align:right;}
+
+/* day breakdown */
+.day-spend{
+  margin:12px 20px 0;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:16px;
+  overflow:hidden;
+}
+.ds-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;
+  border-bottom:1px solid var(--rule-soft);
+  cursor:pointer;
+  transition:background .15s;
+}
+.ds-row:last-child{border-bottom:none;}
+.ds-row:active{background:var(--sage-pale);}
+.ds-day{font-size:12px;color:var(--ink-mid);}
+.ds-bar-wrap{flex:1;margin:0 12px;}
+.ds-bar{height:3px;background:var(--rule);border-radius:2px;overflow:hidden;}
+.ds-bar-fill{height:100%;border-radius:2px;background:var(--sage-light);}
+.ds-amt{font-size:13px;color:var(--ink-soft);}
+
+/* member settle */
+.settle-wrap{
+  margin:12px 20px 0;
+}
+.settle-title{
+  font-size:10px;letter-spacing:0.18em;
+  color:var(--ink-muted);text-transform:uppercase;
+  margin-bottom:10px;
+}
+.settle-card{
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:14px;
+  margin-bottom:8px;
+  overflow:hidden;
+}
+.settle-row{
+  display:flex;align-items:center;
+  padding:12px 16px;
+  gap:10px;
+  border-bottom:1px solid var(--rule-soft);
+}
+.settle-row:last-child{border-bottom:none;}
+.ava{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--white);
+  flex-shrink:0;font-weight:400;
+}
+.settle-name{flex:1;font-size:13px;color:var(--ink);}
+.settle-amt{font-size:13px;}
+.settle-amt.owe{color:var(--warn);}
+.settle-amt.recv{color:var(--sage);}
+
+/* add expense fab */
+.fab{
+  position:absolute;
+  bottom:84px; right:20px;
+  width:50px;height:50px;
+  background:var(--ink);
+  border-radius:50%;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--cream);
+  box-shadow:0 4px 18px rgba(37,36,31,0.22);
+  transition:transform .2s;
+  z-index:99;
+}
+.fab:active{transform:scale(.9);}
+
+/* add expense sheet */
+.sheet-overlay{
+  position:absolute;inset:0;
+  background:rgba(37,36,31,0.35);
+  z-index:150;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+.sheet-overlay.show{opacity:1;pointer-events:all;}
+.sheet{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  background:var(--white);
+  border-radius:28px 28px 0 0;
+  padding:0 0 40px;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.32,.72,0,1);
+}
+.sheet-overlay.show .sheet{transform:translateY(0);}
+.sheet-handle{
+  width:36px;height:4px;
+  background:var(--stone-light);
+  border-radius:2px;
+  margin:14px auto 0;
+}
+.sheet-title{
+  font-family:'Noto Serif TC',serif;
+  font-size:16px;color:var(--ink);
+  padding:16px 20px 12px;
+}
+.sheet-rule{height:1px;background:var(--rule);margin:0 20px 16px;}
+.field-row{padding:0 20px 14px;display:flex;flex-direction:column;gap:4px;}
+.field-label{font-size:10px;letter-spacing:0.12em;color:var(--ink-muted);}
+.field-input{
+  border:1px solid var(--rule);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:15px;
+  font-family:'Noto Sans TC',sans-serif;
+  font-weight:300;
+  color:var(--ink);
+  background:var(--cream);
+  outline:none;
+  transition:border-color .2s;
+}
+.field-input:focus{border-color:var(--sage-mid);}
+.pill-row{display:flex;gap:7px;flex-wrap:wrap;padding:0 20px 14px;}
+.pill{
+  padding:6px 13px;
+  border:1px solid var(--rule);
+  border-radius:20px;
+  font-size:12px;color:var(--ink-mid);
+  cursor:pointer;transition:all .15s;
+  background:transparent;
+}
+.pill.sel{
+  background:var(--sage-pale);
+  border-color:var(--sage-light);
+  color:var(--sage);
+}
+.pay-toggle{
+  display:flex;
+  margin:0 20px 16px;
+  border:1px solid var(--rule);
+  border-radius:10px;overflow:hidden;
+}
+.pay-opt{
+  flex:1;padding:9px;text-align:center;
+  font-size:13px;color:var(--ink-muted);
+  cursor:pointer;transition:all .2s;
+}
+.pay-opt.sel{background:var(--ink);color:var(--cream);}
+.sheet-btn{
+  margin:4px 20px 0;
+  width:calc(100% - 40px);
+  padding:14px;
+  background:var(--ink);
+  color:var(--cream);
+  border:none;border-radius:14px;
+  font-family:'Noto Sans TC',sans-serif;
+  font-size:14px;font-weight:300;
+  letter-spacing:0.08em;
+  cursor:pointer;
+  transition:opacity .2s;
+}
+.sheet-btn:active{opacity:.8;}
+
+/* trip picker dropdown */
+.picker-overlay{
+  position:absolute;inset:0;
+  background:rgba(37,36,31,0.3);
+  z-index:140;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.picker-overlay.show{opacity:1;pointer-events:all;}
+.picker{
+  position:absolute;
+  top:130px;left:20px;right:20px;
+  background:var(--white);
+  border:1px solid var(--rule);
+  border-radius:18px;
+  overflow:hidden;
+  transform:translateY(-8px) scale(.97);
+  transition:transform .25s cubic-bezier(.32,.72,0,1), opacity .25s;
+  opacity:0;
+}
+.picker-overlay.show .picker{transform:translateY(0) scale(1);opacity:1;}
+.picker-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--rule-soft);
+  cursor:pointer;
+  transition:background .15s;
+}
+.picker-item:last-child{border-bottom:none;}
+.picker-item:active{background:var(--sage-pale);}
+.pi-dot{width:8px;height:8px;border-radius:50%;background:var(--stone-light);flex-shrink:0;}
+.pi-dot.active{background:var(--sage);}
+.pi-name{font-family:'Noto Serif TC',serif;font-size:14px;color:var(--ink);flex:1;}
+.pi-date{font-size:11px;color:var(--ink-muted);}
+.pi-check{color:var(--sage);}
+
+/* checklist screen */
+.check-list{padding:4px 20px 100px;}
+.check-cat{margin-bottom:4px;}
+.check-cat-hd{
+  font-size:10px;letter-spacing:0.16em;
+  color:var(--ink-muted);text-transform:uppercase;
+  padding:16px 0 8px;
+  display:flex;align-items:center;gap:10px;
+}
+.check-cat-hd::after{content:'';flex:1;height:1px;background:var(--rule-soft);}
+.check-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--rule-soft);
+  cursor:pointer;
+}
+.check-item:last-child{border-bottom:none;}
+.checkmark{
+  width:20px;height:20px;
+  border:1.5px solid var(--stone-light);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:all .2s;
+}
+.checkmark.done{background:var(--sage-light);border-color:var(--sage-light);}
+.check-name{font-size:14px;color:var(--ink);transition:color .2s;}
+.check-name.done{color:var(--ink-muted);text-decoration:line-through;}
+.check-tag{
+  font-size:10px;color:var(--warn);
+  background:var(--warn-pale);
+  border:1px solid rgba(196,123,74,.2);
+  border-radius:4px;padding:1px 6px;
+  margin-left:auto;flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="island"></div>
+
+  <!-- ══════════════════════════
+       SCREEN: HOME
+  ══════════════════════════ -->
+  <div class="screen" id="home">
+    <div class="scroll-area">
+      <div class="sb">
+        <span>9:41</span>
+        <svg width="52" height="14" viewBox="0 0 52 14" fill="none">
+          <rect x="0" y="3" width="6" height="8" rx="1.5" fill="currentColor" opacity=".3"/>
+          <rect x="8" y="2" width="6" height="10" rx="1.5" fill="currentColor" opacity=".5"/>
+          <rect x="16" y="0" width="6" height="12" rx="1.5" fill="currentColor" opacity=".7"/>
+          <rect x="24" y="0" width="6" height="12" rx="1.5" fill="currentColor"/>
+          <rect x="34" y="1" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1" fill="none" opacity=".4"/>
+          <rect x="36" y="3" width="10" height="7" rx="1" fill="currentColor" opacity=".6"/>
+          <path d="M51 5.5v3a1.5 1.5 0 000-3z" fill="currentColor" opacity=".4"/>
+        </svg>
+      </div>
+
+      <!-- trip switcher + weather + spend hero -->
+      <div class="home-hero">
+        <div class="trip-switcher" onclick="openPicker()">
+          <div class="ts-left">
+            <div class="ts-dot"></div>
+            <div>
+              <div class="ts-name">北海道 初雪之旅</div>
+              <div class="ts-sub">Day 3 · 2月12日</div>
+            </div>
+          </div>
+          <svg class="ts-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+
+        <div class="weather-band">
+          <div class="w-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.3" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </div>
+          <div class="w-main">
+            <div class="w-temp">-3°<span style="font-size:16px;color:var(--ink-mid)">/ -9°C</span></div>
+            <div class="w-desc">晴時多雲</div>
+            <div class="w-rain">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+              降雨 15%，明日轉雪 ❄️
+            </div>
+          </div>
+          <div class="w-outfit">保暖外套 + 防滑鞋</div>
+        </div>
+
+        <div class="spend-band">
+          <span class="sb-label">今日花費</span>
+          <span class="sb-val">¥ 4,200 / 無預算上限</span>
+        </div>
+        <div class="spend-bar-track"><div class="spend-bar-fill"></div></div>
+      </div>
+
+      <!-- today flight -->
+      <div class="sec-hd" style="margin-top:4px;">
+        <span class="sec-title">航班</span>
+      </div>
+      <div class="flight-card" onclick="goTo('detail')">
+        <div class="fc-top">
+          <span class="fc-badge">今日抵達</span>
+          <span class="fc-num">CI 110</span>
+        </div>
+        <div class="fc-route">
+          <div class="fc-city">TPE</div>
+          <div class="fc-arrow">
+            <div class="fc-line"></div>
+            <svg class="fc-plane" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+            <div class="fc-line"></div>
+          </div>
+          <div class="fc-city">CTS</div>
+        </div>
+        <div class="fc-times">
+          <div class="fc-time-blk">
+            <div class="fc-time">07:30</div>
+            <div class="fc-apt">桃園 T2</div>
+          </div>
+          <div class="fc-time-blk" style="text-align:right">
+            <div class="fc-time">11:50</div>
+            <div class="fc-apt">新千歲 T1</div>
+          </div>
+        </div>
+        <div class="fc-status">
+          <div class="fc-dot-ok"></div>
+          準時出發 · 行李 23kg · 座位 24A
+        </div>
+      </div>
+
+      <!-- today timeline -->
+      <div class="sec-hd">
+        <span class="sec-title">今日行程</span>
+        <span class="sec-link" onclick="goTo('detail')">全部</span>
+      </div>
+
+      <div class="today-strip">
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-t">11:50</div>
+            <div class="tl-node done"></div>
+            <div class="tl-stem"></div>
+          </div>
+          <div class="tl-card now">
+            <div class="tl-type">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 1 16.5 2.5L13 6 4.8 4.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+              抵達 · 進行中
+            </div>
+            <div class="tl-name">新千歲機場入境</div>
+            <div class="tl-sub">領取行李 → 搭乘 JR 前往札幌</div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-t">14:00</div>
+            <div class="tl-node"></div>
+            <div class="tl-stem"></div>
+          </div>
+          <div class="tl-card">
+            <div class="tl-type">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              住宿
+            </div>
+            <div class="tl-name">Cross Hotel 札幌 入住</div>
+            <div class="tl-sub">チェックイン 14:00 — 訂位確認號 XH2041</div>
+            <div class="tl-cost">¥ 3,700 / 晚</div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-t">17:30</div>
+            <div class="tl-node"></div>
+            <div class="tl-stem"></div>
+          </div>
+          <div class="tl-card">
+            <div class="tl-type">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              景點
+            </div>
+            <div class="tl-name">大通公園 雪祭會場</div>
+            <div class="tl-sub">冰雕展示 · 免費入場 · 建議帶暖暖包</div>
+            <div class="tl-cost">免費</div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-t">19:30</div>
+            <div class="tl-node"></div>
+            <div class="tl-stem"></div>
+          </div>
+          <div class="tl-card">
+            <div class="tl-type">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg>
+              晚餐
+            </div>
+            <div class="tl-name">だるま 狸小路本店 — 成吉思汗燒肉</div>
+            <div class="tl-sub">已訂位 · 4位 · 現場排隊約30分鐘</div>
+            <div class="tl-cost">¥ 2,800 / 人</div>
+          </div>
+        </div>
+      </div>
+      <div class="pad-bottom"></div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-tab on">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        今日
+      </div>
+      <div class="nav-tab" onclick="goTo('detail')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        行程
+      </div>
+      <div class="nav-tab" onclick="goTo('expense')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        記帳
+      </div>
+      <div class="nav-tab" onclick="goTo('checklist')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        清單
+      </div>
+    </nav>
+
+    <!-- trip picker -->
+    <div class="picker-overlay" id="picker" onclick="closePicker(event)">
+      <div class="picker">
+        <div style="padding:14px 18px 10px;font-size:10px;letter-spacing:0.18em;color:var(--ink-muted);text-transform:uppercase;">選擇旅程</div>
+        <div class="picker-item" onclick="closePicker()">
+          <div class="pi-dot active"></div>
+          <div style="flex:1">
+            <div class="pi-name">北海道 初雪之旅</div>
+            <div class="pi-date">2025年2月10–17日 · 進行中</div>
+          </div>
+          <svg class="pi-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="picker-item">
+          <div class="pi-dot"></div>
+          <div style="flex:1">
+            <div class="pi-name">京都 楓紅散策</div>
+            <div class="pi-date">2024年11月20–25日 · 已完成</div>
+          </div>
+        </div>
+        <div class="picker-item">
+          <div class="pi-dot"></div>
+          <div style="flex:1">
+            <div class="pi-name">釜山 海岸小旅行</div>
+            <div class="pi-date">2024年8月3–6日 · 已完成</div>
+          </div>
+        </div>
+        <div class="picker-item" style="border-top:1px solid var(--rule);margin-top:2px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <div class="pi-name" style="color:var(--sage)">建立新旅程</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════
+       SCREEN: DETAIL (行程)
+  ══════════════════════════ -->
+  <div class="screen off" id="detail">
+    <div class="scroll-area">
+      <div class="sb"><span>9:41</span><span style="font-size:18px;">···</span></div>
+      <div class="det-header">
+        <button class="back-btn" onclick="goBack('home')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="det-title-blk">
+          <div class="det-title">北海道 初雪之旅</div>
+          <div class="det-sub">2025年2月10日 – 17日 · 8天7夜</div>
+        </div>
+        <button class="more-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg>
+        </button>
+      </div>
+
+      <div class="sum-row">
+        <div class="sum-pill"><div class="sum-val">8</div><div class="sum-key">天數</div></div>
+        <div class="sum-pill"><div class="sum-val">¥68,400</div><div class="sum-key">總花費</div></div>
+        <div class="sum-pill"><div class="sum-val">12</div><div class="sum-key">景點</div></div>
+        <div class="sum-pill"><div class="sum-val">3人</div><div class="sum-key">同行</div></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab on" onclick="switchTab(this,'tp-timeline')">行程</div>
+        <div class="tab" onclick="switchTab(this,'tp-weather')">天氣</div>
+        <div class="tab" onclick="switchTab(this,'tp-map')">地圖</div>
+      </div>
+
+      <!-- timeline tab -->
+      <div class="tab-panel on" id="tp-timeline">
+        <div class="det-tl">
+          <div class="day-hd">Day 1 · 2月10日 一</div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">07:30</div>
+              <div class="tl-node done"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 1 16.5 2.5L13 6 4.8 4.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>交通</div>
+              <div class="tl-name">CI 110 · 桃園 → 新千歲</div>
+              <div class="tl-sub">07:30 起飛 · 11:50 抵達 · T2 登機</div>
+              <div class="tl-cost">¥ 18,500 （三人）</div>
+            </div>
+          </div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">14:00</div>
+              <div class="tl-node done"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>住宿</div>
+              <div class="tl-name">定山渓温泉 章魚料理旅館</div>
+              <div class="tl-sub">和式溫泉房 · 含晚餐 · 2晚</div>
+              <div class="tl-cost">¥ 14,800 / 晚</div>
+            </div>
+          </div>
+
+          <div class="day-hd">Day 2 · 2月11日 二</div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">09:30</div>
+              <div class="tl-node done"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>景點</div>
+              <div class="tl-name">小樽運河散步</div>
+              <div class="tl-sub">積雪約30cm · 氣溫 -4°C · 帶相機！</div>
+              <div class="tl-cost">免費</div>
+            </div>
+          </div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">12:30</div>
+              <div class="tl-node done"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg>午餐</div>
+              <div class="tl-name">政寿司 本店 — 海鮮丼</div>
+              <div class="tl-sub">小樽運河旁 · 強烈推薦！提前訂位</div>
+              <div class="tl-cost">¥ 3,200 / 人</div>
+            </div>
+          </div>
+
+          <div class="day-hd">Day 3 · 2月12日 三 · 今天</div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">11:50</div>
+              <div class="tl-node done"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card now">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 1 16.5 2.5L13 6 4.8 4.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>抵達 · 進行中</div>
+              <div class="tl-name">新千歲 → JR 快速 → 札幌</div>
+              <div class="tl-sub">約36分鐘 · ¥1,150 · 持 Suica 可直接搭乘</div>
+              <div class="tl-cost">¥ 1,150 / 人</div>
+            </div>
+          </div>
+
+          <div class="tl-row">
+            <div class="tl-spine">
+              <div class="tl-t">14:00</div>
+              <div class="tl-node"></div>
+              <div class="tl-stem"></div>
+            </div>
+            <div class="tl-card">
+              <div class="tl-type"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>住宿</div>
+              <div class="tl-name">Cross Hotel 札幌 入住</div>
+              <div class="tl-sub">訂位代號 XH2041 · 4晚</div>
+              <div class="tl-cost">¥ 3,700 / 晚</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- weather tab -->
+      <div class="tab-panel" id="tp-weather">
+        <div style="padding:16px 20px 100px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <!-- day pills -->
+            <div style="background:var(--white);border:1px solid var(--rule);border-radius:16px;overflow:hidden;">
+              <div style="padding:12px 16px;font-size:10px;letter-spacing:0.16em;color:var(--ink-muted);border-bottom:1px solid var(--rule-soft);">全程天氣一覽</div>
+              <div style="display:flex;flex-direction:column;">
+                <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--rule-soft);gap:10px;">
+                  <span style="font-size:11px;color:var(--ink-muted);width:60px;">2/10 一</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--stone-mid)" stroke-width="1.3"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                  <span style="font-size:12px;color:var(--ink-soft);flex:1;">晴</span>
+                  <span style="font-size:12px;color:var(--ink-mid);">-2 / -8°C</span>
+                  <span style="font-size:11px;color:var(--sage);background:var(--sage-pale);padding:2px 8px;border-radius:10px;">雨10%</span>
+                </div>
+                <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--rule-soft);gap:10px;">
+                  <span style="font-size:11px;color:var(--ink-muted);width:60px;">2/11 二</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--stone-mid)" stroke-width="1.3"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                  <span style="font-size:12px;color:var(--ink-soft);flex:1;">晴</span>
+                  <span style="font-size:12px;color:var(--ink-mid);">0 / -6°C</span>
+                  <span style="font-size:11px;color:var(--sage);background:var(--sage-pale);padding:2px 8px;border-radius:10px;">雨15%</span>
+                </div>
+                <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--rule-soft);gap:10px;background:var(--sage-pale);">
+                  <span style="font-size:11px;color:var(--sage);width:60px;font-weight:400;">2/12 三 ●</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.3"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                  <span style="font-size:12px;color:var(--sage);flex:1;">晴時多雲</span>
+                  <span style="font-size:12px;color:var(--sage);">-3 / -9°C</span>
+                  <span style="font-size:11px;color:var(--sage);background:var(--white);padding:2px 8px;border-radius:10px;border:1px solid var(--sage-light);">雪❄️ 20%</span>
+                </div>
+                <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--rule-soft);gap:10px;">
+                  <span style="font-size:11px;color:var(--ink-muted);width:60px;">2/13 四</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--stone-mid)" stroke-width="1.3"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+                  <span style="font-size:12px;color:var(--ink-soft);flex:1;">多雲</span>
+                  <span style="font-size:12px;color:var(--ink-mid);">-5 / -12°C</span>
+                  <span style="font-size:11px;color:var(--warn);background:var(--warn-pale);padding:2px 8px;border-radius:10px;">雪❄️ 65%</span>
+                </div>
+                <div style="display:flex;align-items:center;padding:11px 16px;gap:10px;">
+                  <span style="font-size:11px;color:var(--ink-muted);width:60px;">2/14 五</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--stone-mid)" stroke-width="1.3"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+                  <span style="font-size:12px;color:var(--ink-soft);flex:1;">陰雪</span>
+                  <span style="font-size:12px;color:var(--ink-mid);">-6 / -13°C</span>
+                  <span style="font-size:11px;color:var(--warn);background:var(--warn-pale);padding:2px 8px;border-radius:10px;">雪❄️ 80%</span>
+                </div>
+              </div>
+            </div>
+            <!-- outfit advice -->
+            <div style="background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:16px;">
+              <div style="font-size:10px;letter-spacing:0.16em;color:var(--ink-muted);margin-bottom:10px;">穿搭建議</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="font-size:13px;color:var(--ink-soft);padding:10px 12px;background:var(--sage-pale);border-radius:10px;line-height:1.6;">
+                  🧥 今日 -3°C：羽絨外套 + 發熱衣 + 保暖褲<br>防滑雪靴必備，建議戴帽子、手套
+                </div>
+                <div style="font-size:13px;color:var(--ink-soft);padding:10px 12px;background:var(--warn-pale);border-radius:10px;line-height:1.6;">
+                  ⚠️ 2/13–14 大雪預報：建議室內行程優先，攜帶暖暖包，注意路面結冰
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- map tab -->
+      <div class="tab-panel" id="tp-map">
+        <div style="padding:16px 20px 100px">
+          <div style="background:var(--sage-pale);border:1px solid var(--sage-light);border-radius:16px;height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:12px;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span style="font-size:12px;color:var(--sage);">Google Maps 整合</span>
+            <span style="font-size:11px;color:var(--ink-muted);">顯示路線與所有景點</span>
+          </div>
+          <div style="background:var(--white);border:1px solid var(--rule);border-radius:14px;overflow:hidden;">
+            <div style="padding:12px 16px;font-size:10px;letter-spacing:0.16em;color:var(--ink-muted);border-bottom:1px solid var(--rule-soft);">景點順序</div>
+            <div style="padding:8px 0;">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--rule-soft);">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--sage-pale);border:1px solid var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--sage);">1</div>
+                <span style="font-size:13px;color:var(--ink);">新千歲機場</span>
+                <span style="font-size:11px;color:var(--ink-muted);margin-left:auto;">Day 1</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--rule-soft);">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--sage-pale);border:1px solid var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--sage);">2</div>
+                <span style="font-size:13px;color:var(--ink);">定山渓温泉</span>
+                <span style="font-size:11px;color:var(--ink-muted);margin-left:auto;">Day 1–2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--rule-soft);">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--sage-pale);border:1px solid var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--sage);">3</div>
+                <span style="font-size:13px;color:var(--ink);">小樽運河</span>
+                <span style="font-size:11px;color:var(--ink-muted);margin-left:auto;">Day 2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--rule-soft);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-muted);">4</div>
+                <span style="font-size:13px;color:var(--ink-muted);">大通公園雪祭 →</span>
+                <span style="font-size:11px;color:var(--ink-muted);margin-left:auto;">Day 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-tab" onclick="goBack('home')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        今日
+      </div>
+      <div class="nav-tab on">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        行程
+      </div>
+      <div class="nav-tab" onclick="goTo('expense')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        記帳
+      </div>
+      <div class="nav-tab" onclick="goTo('checklist')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        清單
+      </div>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════
+       SCREEN: EXPENSE (記帳)
+  ══════════════════════════ -->
+  <div class="screen off" id="expense">
+    <div class="scroll-area">
+      <div class="sb"><span>9:41</span><span style="font-size:18px;">···</span></div>
+      <div style="padding:0 20px 0;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'Noto Serif TC',serif;font-size:20px;color:var(--ink);">記帳</div>
+        <div style="font-size:11px;color:var(--ink-muted);">北海道 初雪之旅</div>
+      </div>
+
+      <!-- donut -->
+      <div class="donut-wrap" style="margin-top:14px;">
+        <div style="font-size:10px;letter-spacing:0.16em;color:var(--ink-muted);margin-bottom:14px;">花費分類</div>
+        <div class="donut-inner">
+          <svg class="donut-svg" width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--rule)" stroke-width="14"/>
+            <!-- housing 43% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--sage-mid)" stroke-width="14"
+              stroke-dasharray="102 137" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+            <!-- flight 27% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--sage-light)" stroke-width="14"
+              stroke-dasharray="64 175" stroke-dashoffset="-102" transform="rotate(-90 50 50)"/>
+            <!-- food 18% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--stone-light)" stroke-width="14"
+              stroke-dasharray="43 196" stroke-dashoffset="-166" transform="rotate(-90 50 50)"/>
+            <!-- transport 8% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--stone-mid)" stroke-width="14"
+              stroke-dasharray="19 220" stroke-dashoffset="-209" transform="rotate(-90 50 50)"/>
+            <text x="50" y="46" text-anchor="middle" font-size="11" fill="var(--ink-soft)" font-family="Noto Sans TC">總計</text>
+            <text x="50" y="60" text-anchor="middle" font-size="10" fill="var(--ink-muted)" font-family="Noto Sans TC">¥68,400</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="leg-row"><div class="leg-dot" style="background:var(--sage-mid)"></div><span class="leg-name">住宿</span><span class="leg-val">¥29,600</span><span class="leg-pct">43%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--sage-light)"></div><span class="leg-name">機票</span><span class="leg-val">¥18,500</span><span class="leg-pct">27%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--stone-light)"></div><span class="leg-name">餐飲</span><span class="leg-val">¥12,400</span><span class="leg-pct">18%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--stone-mid)"></div><span class="leg-name">交通</span><span class="leg-val">¥5,200</span><span class="leg-pct">8%</span></div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--rule)"></div><span class="leg-name">其他</span><span class="leg-val">¥2,700</span><span class="leg-pct">4%</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule-soft);">
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:13px;color:var(--ink-soft);">¥42,300</div>
+            <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">💳 刷卡</div>
+          </div>
+          <div style="width:1px;background:var(--rule-soft);"></div>
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:13px;color:var(--ink-soft);">¥26,100</div>
+            <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">💵 現金</div>
+          </div>
+          <div style="width:1px;background:var(--rule-soft);"></div>
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:13px;color:var(--ink-soft);">NT$147,380</div>
+            <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">折合台幣</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- daily breakdown -->
+      <div style="margin:12px 20px 0;">
+        <div style="font-size:10px;letter-spacing:0.18em;color:var(--ink-muted);text-transform:uppercase;margin-bottom:10px;">每日花費</div>
+      </div>
+      <div class="day-spend">
+        <div class="ds-row"><span class="ds-day">2/10 Day1</span><div class="ds-bar-wrap"><div class="ds-bar"><div class="ds-bar-fill" style="width:90%"></div></div></div><span class="ds-amt">¥22,800</span></div>
+        <div class="ds-row"><span class="ds-day">2/11 Day2</span><div class="ds-bar-wrap"><div class="ds-bar"><div class="ds-bar-fill" style="width:45%"></div></div></div><span class="ds-amt">¥11,400</span></div>
+        <div class="ds-row" style="background:var(--sage-pale);"><span class="ds-day" style="color:var(--sage);">2/12 Day3 ●</span><div class="ds-bar-wrap"><div class="ds-bar"><div class="ds-bar-fill" style="width:17%"></div></div></div><span class="ds-amt" style="color:var(--sage);">¥4,200</span></div>
+        <div class="ds-row" style="opacity:.4;"><span class="ds-day">2/13 Day4</span><div class="ds-bar-wrap"><div class="ds-bar"><div class="ds-bar-fill" style="width:0%"></div></div></div><span class="ds-amt">—</span></div>
+      </div>
+
+      <!-- member settle -->
+      <div class="settle-wrap" style="margin-top:16px;">
+        <div class="settle-title">成員結算</div>
+        <div class="settle-card">
+          <div class="settle-row">
+            <div class="ava" style="background:var(--sage-mid);">我</div>
+            <span class="settle-name">小安（我）</span>
+            <span class="settle-amt" style="color:var(--ink-muted);">已付 ¥38,200</span>
+          </div>
+          <div class="settle-row">
+            <div class="ava" style="background:var(--stone-mid);">J</div>
+            <span class="settle-name">Jason</span>
+            <span class="settle-amt recv">← 收 ¥6,400</span>
+          </div>
+          <div class="settle-row">
+            <div class="ava" style="background:var(--stone-light);color:var(--stone);">M</div>
+            <span class="settle-name">Mei</span>
+            <span class="settle-amt owe">→ 付 ¥2,100</span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-muted);padding:4px 2px;">結算以即時匯率 1 JPY = 0.215 TWD 計算</div>
+      </div>
+
+      <div class="pad-bottom"></div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" onclick="openSheet()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+
+    <nav class="nav">
+      <div class="nav-tab" onclick="goBack('home')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        今日
+      </div>
+      <div class="nav-tab" onclick="goTo('detail')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        行程
+      </div>
+      <div class="nav-tab on">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        記帳
+      </div>
+      <div class="nav-tab" onclick="goTo('checklist')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        清單
+      </div>
+    </nav>
+
+    <!-- add expense sheet -->
+    <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheetOutside(event)">
+      <div class="sheet" id="add-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">新增消費</div>
+        <div class="sheet-rule"></div>
+        <div class="field-row">
+          <div class="field-label">金額</div>
+          <input class="field-input" type="number" placeholder="0" style="font-size:24px;padding:8px 14px;">
+        </div>
+        <div class="field-row" style="padding-bottom:6px;">
+          <div class="field-label" style="margin-bottom:8px;">類別</div>
+          <div class="pill-row" style="padding:0;">
+            <div class="pill sel" onclick="selPill(this)">餐飲</div>
+            <div class="pill" onclick="selPill(this)">交通</div>
+            <div class="pill" onclick="selPill(this)">住宿</div>
+            <div class="pill" onclick="selPill(this)">購物</div>
+            <div class="pill" onclick="selPill(this)">門票</div>
+            <div class="pill" onclick="selPill(this)">其他</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label" style="margin-bottom:8px;">付款方式</div>
+          <div class="pay-toggle">
+            <div class="pay-opt sel" onclick="selPay(this)">💳 刷卡</div>
+            <div class="pay-opt" onclick="selPay(this)">💵 現金</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">付款人</div>
+          <div class="pill-row" style="padding:4px 0 0;">
+            <div class="pill sel" onclick="selPill(this)">我</div>
+            <div class="pill" onclick="selPill(this)">Jason</div>
+            <div class="pill" onclick="selPill(this)">Mei</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">備註（選填）</div>
+          <input class="field-input" type="text" placeholder="例：成吉思汗燒肉 4人">
+        </div>
+        <button class="sheet-btn" onclick="closeSheet()">記帳</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════
+       SCREEN: CHECKLIST
+  ══════════════════════════ -->
+  <div class="screen off" id="checklist">
+    <div class="scroll-area">
+      <div class="sb"><span>9:41</span><span style="font-size:18px;">···</span></div>
+      <div style="padding:0 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'Noto Serif TC',serif;font-size:20px;color:var(--ink);">出發清單</div>
+        <div style="font-size:12px;color:var(--sage);">已完成 8/14</div>
+      </div>
+      <div style="margin:10px 20px 0;height:3px;background:var(--rule);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:57%;background:var(--sage-mid);border-radius:2px;"></div>
+      </div>
+
+      <div class="check-list">
+        <div class="check-cat">
+          <div class="check-cat-hd">證件類</div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">護照</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">機票列印 / 電子票</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">日圓現金</span>
+            <span class="check-tag">重要</span>
+          </div>
+        </div>
+
+        <div class="check-cat">
+          <div class="check-cat-hd">衣物類</div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">羽絨外套</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">發熱衣 × 4</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">防滑雪靴</span>
+            <span class="check-tag">天氣建議</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">保暖手套 + 帽子</span>
+            <span class="check-tag">天氣建議</span>
+          </div>
+        </div>
+
+        <div class="check-cat">
+          <div class="check-cat-hd">電子產品</div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">手機充電器</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">行動電源</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">日本轉接頭</span>
+          </div>
+        </div>
+
+        <div class="check-cat">
+          <div class="check-cat-hd">藥品 / 其他</div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="check-name done">常備藥</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">暖暖包 × 10</span>
+            <span class="check-tag">天氣建議</span>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="checkmark"></div>
+            <span class="check-name">旅遊保險確認書</span>
+            <span class="check-tag">重要</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-tab" onclick="goBack('home')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        今日
+      </div>
+      <div class="nav-tab" onclick="goTo('detail')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        行程
+      </div>
+      <div class="nav-tab" onclick="goTo('expense')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        記帳
+      </div>
+      <div class="nav-tab on">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        清單
+      </div>
+    </nav>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+let current = 'home';
+
+function goTo(id) {
+  document.getElementById(current).classList.add('off');
+  document.getElementById(current).classList.remove('back');
+  const next = document.getElementById(id);
+  next.classList.remove('off','back');
+  current = id;
+}
+
+function goBack(id) {
+  const cur = document.getElementById(current);
+  cur.classList.add('off','back');
+  document.getElementById(id).classList.remove('off','back');
+  current = id;
+}
+
+function openPicker() {
+  document.getElementById('picker').classList.add('show');
+}
+function closePicker(e) {
+  if (!e || e.target === document.getElementById('picker')) {
+    document.getElementById('picker').classList.remove('show');
+  }
+}
+
+function openSheet() {
+  document.getElementById('sheet-overlay').classList.add('show');
+}
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('show');
+}
+function closeSheetOutside(e) {
+  if (e.target === document.getElementById('sheet-overlay')) closeSheet();
+}
+
+function selPill(el) {
+  const group = el.parentElement;
+  group.querySelectorAll('.pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function selPay(el) {
+  const t = el.parentElement;
+  t.querySelectorAll('.pay-opt').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function switchTab(el, panelId) {
+  el.closest('.screen').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  el.closest('.screen').querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+  document.getElementById(panelId).classList.add('on');
+}
+
+function toggleCheck(el) {
+  const mark = el.querySelector('.checkmark');
+  const name = el.querySelector('.check-name');
+  const done = mark.classList.toggle('done');
+  name.classList.toggle('done', done);
+  if (done) {
+    mark.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else {
+    mark.innerHTML = '';
+  }
+}
+</script>
+</body>
+</html>
