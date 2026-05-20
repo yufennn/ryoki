@@ -7,629 +7,436 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="旅跡">
 <title>旅跡 Ryoki</title>
-
-<!-- PWA Icon via canvas → apple-touch-icon -->
 <link rel="apple-touch-icon" id="pwa-icon">
-
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
 <style>
-/* ─── Reset & tokens ───────────────────────────── */
 :root{
-  --sage:      #5a8f6a;
-  --sage-m:    #8ab898;
-  --sage-l:    #b8d4be;
-  --sage-p:    #e6f2e8;
-  --stone:     #6a6358;
-  --stone-m:   #9e9890;
-  --stone-l:   #c8c2ba;
-  --stone-p:   #f0ebe4;
-  --ink:       #18180e;
-  --ink-s:     #30302a;
-  --ink-m:     #52504a;
-  --ink-t:     #7a7870;
-  --cream:     #f7f4ee;
-  --white:     #ffffff;
-  --warn:      #b05a28;
-  --warn-p:    #faeae0;
-  --line:      rgba(24,24,14,.10);
-  --line-s:    rgba(24,24,14,.05);
-  --safe-top:  env(safe-area-inset-top, 0px);
-  --safe-bot:  env(safe-area-inset-bottom, 0px);
+  --sage:#5a8f6a; --sage-m:#8ab898; --sage-l:#b8d4be; --sage-p:#e6f2e8;
+  --stone:#6a6358; --stone-m:#9e9890; --stone-l:#c8c2ba; --stone-p:#f0ebe4;
+  --ink:#18180e; --ink-s:#30302a; --ink-m:#52504a; --ink-t:#7a7870;
+  --cream:#f7f4ee; --white:#fff;
+  --warn:#b05a28; --warn-p:#faeae0;
+  --line:rgba(24,24,14,.10); --line-s:rgba(24,24,14,.05);
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px);
+  --sr:env(safe-area-inset-right,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;background:var(--cream);font-family:'Noto Sans TC',sans-serif;font-weight:300;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--cream);
+  font-family:'Noto Sans TC',sans-serif;font-weight:300;color:var(--ink);}
 
-/* ─── Splash screen ─────────────────────────────── */
-#splash{
-  position:fixed;inset:0;z-index:999;
-  background:linear-gradient(160deg,#e8f2e8 0%,#f0ebe4 60%,#e8f2e8 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  transition:opacity .6s ease, transform .6s ease;
-}
-#splash.hide{opacity:0;pointer-events:none;transform:scale(1.04);}
-.splash-art{margin-bottom:28px;}
-.splash-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:var(--ink);letter-spacing:.08em;}
-.splash-sub{font-family:'Noto Serif TC',serif;font-size:13px;color:var(--ink-t);letter-spacing:.3em;margin-top:6px;}
-.splash-dot{width:6px;height:6px;border-radius:50%;background:var(--sage-m);margin-top:40px;animation:pulse 1.4s ease infinite;}
-@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;z-index:999;
+  background:linear-gradient(160deg,#e6f2e8,#f0ebe4 55%,#e6f2e8);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  transition:opacity .7s ease,transform .7s ease;}
+#splash.hide{opacity:0;pointer-events:none;transform:scale(1.03);}
+.sp-dot{width:7px;height:7px;border-radius:50%;background:var(--sage-m);margin-top:36px;
+  animation:spdot 1.4s ease infinite;}
+@keyframes spdot{0%,100%{opacity:.3;transform:scale(.7);}50%{opacity:1;transform:scale(1.2);}}
 
-/* ─── App shell ─────────────────────────────────── */
-#app{
-  position:fixed;inset:0;
-  display:flex;flex-direction:column;
-  padding-top:var(--safe-top);
-}
+/* ── APP SHELL ── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ─── Screens ───────────────────────────────────── */
-.screen{
-  position:absolute;inset:0;
-  padding-top:var(--safe-top);
-  background:var(--cream);
-  display:flex;flex-direction:column;
-  transition:opacity .3s ease, transform .3s ease;
-  overflow:hidden;
-}
-.screen.off{opacity:0;pointer-events:none;transform:translateX(24px);}
-.screen.off.back{transform:translateX(-24px);}
+/* ── SCREEN ── */
+.scr{position:absolute;inset:0;background:var(--cream);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:opacity .3s,transform .3s;}
+.scr.off{opacity:0;pointer-events:none;transform:translateX(22px);}
+.scr.off.back{transform:translateX(-22px);}
 
-.scroll{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  padding-bottom:calc(72px + var(--safe-bot));
-}
-.scroll::-webkit-scrollbar{display:none;}
+/* ── SCROLL AREA ── */
+.scrl{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding-bottom:calc(60px + var(--sb));}
+.scrl::-webkit-scrollbar{display:none;}
 
-/* ─── Nav bar ───────────────────────────────────── */
-.nav{
-  position:absolute;bottom:0;left:0;right:0;
-  height:calc(56px + var(--safe-bot));
-  padding-bottom:var(--safe-bot);
-  background:rgba(247,244,238,.95);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border-top:1px solid var(--line);
-  display:flex;align-items:flex-start;
-  padding-top:8px;
-  z-index:50;
-}
-.nav-tab{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:11px;color:var(--stone-m);cursor:pointer;
-  transition:color .2s;letter-spacing:.03em;
-}
-.nav-tab.on{color:var(--sage);}
-.nav-tab svg{transition:transform .15s;}
-.nav-tab:active svg{transform:scale(.85);}
-
-/* ─── Topbar ────────────────────────────────────── */
+/* ── TOPBAR ── */
 .topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 20px 6px;flex-shrink:0;
-}
-.topbar-title{font-family:'Noto Serif TC',serif;font-size:20px;color:var(--ink);}
-.icon-btn{
-  width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
-  background:transparent;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:var(--ink-m);
-  transition:background .15s;
-}
-.icon-btn:active{background:var(--sage-p);}
+  padding:calc(var(--st) + 2px) 20px 6px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--ink);
+  display:flex;align-items:baseline;gap:8px;}
+.logo-sub{font-family:'Noto Serif TC',serif;font-size:12px;color:var(--ink-t);letter-spacing:.18em;}
+.iBtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--ink-m);transition:background .15s;flex-shrink:0;}
+.iBtn:active{background:var(--sage-p);}
 
-/* ─── Trip switcher ─────────────────────────────── */
-.trip-bar{
-  margin:0 16px 12px;
-  background:var(--white);border:1px solid var(--line);
-  border-radius:18px;overflow:hidden;
-}
-.trip-bar-top{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:13px 16px;border-bottom:1px solid var(--line-s);
-  cursor:pointer;
-}
-.trip-bar-left{display:flex;align-items:center;gap:10px;}
-.trip-live-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--sage);flex-shrink:0;
-  animation:livepulse 2s ease infinite;
-}
-@keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(90,143,106,.4);}50%{box-shadow:0 0 0 5px rgba(90,143,106,0);}}
-.trip-name{font-family:'Noto Serif TC',serif;font-size:16px;color:var(--ink);font-weight:400;}
-.trip-day{font-size:13px;color:var(--ink-t);margin-top:1px;}
+/* ── CARD BASE ── */
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+.px{padding-left:20px;padding-right:20px;}
 
-/* weather row */
-.wx-row{
-  display:flex;align-items:center;padding:12px 16px;gap:12px;
-  border-bottom:1px solid var(--line-s);
-}
-.wx-ico{width:40px;height:40px;border-radius:50%;background:var(--sage-p);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.wx-temp{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--ink);line-height:1;}
+/* ── TRIP BAR ── */
+.trip-bar{margin:0 16px 8px;background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+.tb-top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  border-bottom:1px solid var(--line-s);cursor:pointer;}
+.tb-left{display:flex;align-items:center;gap:9px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);flex-shrink:0;
+  animation:ldot 2s ease infinite;}
+@keyframes ldot{0%,100%{box-shadow:0 0 0 0 rgba(90,143,106,.4);}50%{box-shadow:0 0 0 5px rgba(90,143,106,0);}}
+.tb-name{font-family:'Noto Serif TC',serif;font-size:16px;color:var(--ink);font-weight:400;}
+.tb-day{font-size:13px;color:var(--ink-t);margin-top:1px;}
+
+/* weather */
+.wx-row{display:flex;align-items:center;padding:12px 16px;gap:12px;border-bottom:1px solid var(--line-s);}
+.wx-ico{width:38px;height:38px;border-radius:50%;background:var(--sage-p);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wx-temp{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--ink);line-height:1;}
 .wx-desc{font-size:13px;color:var(--ink-m);margin-top:2px;}
-.wx-rain{font-size:12px;color:var(--warn);margin-top:3px;display:flex;align-items:center;gap:4px;}
-.wx-outfit{font-size:12px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);border-radius:20px;padding:5px 12px;white-space:nowrap;flex-shrink:0;}
+.wx-rain{font-size:12px;color:var(--warn);margin-top:3px;}
+.wx-tag{font-size:12px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);
+  border-radius:20px;padding:4px 11px;white-space:nowrap;flex-shrink:0;align-self:center;}
 
-/* today spend row */
+/* spend */
 .spend-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 6px;}
-.spend-lbl{font-size:12px;color:var(--ink-t);letter-spacing:.06em;}
+.spend-lbl{font-size:12px;color:var(--ink-t);letter-spacing:.05em;}
 .spend-val{font-size:14px;color:var(--ink-m);font-weight:400;}
-.spend-track{height:3px;background:var(--line);margin:0 16px 12px;border-radius:2px;overflow:hidden;}
-.spend-fill{height:100%;width:0;background:var(--sage-m);border-radius:2px;transition:width 1s ease .3s;}
+.spend-trk{height:3px;background:var(--line);margin:0 16px 12px;border-radius:2px;overflow:hidden;}
+.spend-fill{height:100%;width:0;background:var(--sage-m);border-radius:2px;transition:width 1.2s ease .5s;}
 
-/* ─── Section header ────────────────────────────── */
-.sec{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;}
+/* ── SEC HEADER ── */
+.sec{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 6px;}
 .sec-lbl{font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;}
-.sec-action{font-size:13px;color:var(--sage);cursor:pointer;}
+.sec-act{font-size:13px;color:var(--sage);cursor:pointer;}
 
-/* ─── Timeline ──────────────────────────────────── */
-.tl-wrap{padding:0 16px;}
-.tl-row{display:flex;gap:12px;cursor:pointer;}
-.tl-spine{display:flex;flex-direction:column;align-items:center;width:38px;flex-shrink:0;padding-top:12px;}
-.tl-time{font-size:11px;color:var(--ink-t);white-space:nowrap;}
-.tl-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--sage-l);background:var(--cream);margin:5px 0 0;flex-shrink:0;}
-.tl-dot.on{background:var(--sage-l);}
-.tl-line{width:1px;flex:1;min-height:18px;background:var(--line-s);margin-top:2px;}
-.tl-card{
-  flex:1;background:var(--white);border:1px solid var(--line);
-  border-radius:14px;padding:13px 15px;margin-bottom:10px;
-  transition:border-color .2s;
-}
-.tl-card:active{border-color:var(--sage-l);}
-.tl-card.now{border-color:var(--sage-l);background:var(--sage-p);}
-.tl-tag{font-size:11px;color:var(--ink-t);letter-spacing:.08em;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
-.tl-ttl{font-size:15px;color:var(--ink);font-weight:400;line-height:1.35;}
-.tl-sub{font-size:13px;color:var(--ink-m);margin-top:3px;line-height:1.5;}
-.tl-cost{display:inline-block;font-size:12px;color:var(--stone);background:var(--stone-p);border:1px solid var(--stone-l);border-radius:6px;padding:2px 10px;margin-top:7px;}
-
-/* ─── Flight card ───────────────────────────────── */
-.flight-card{
-  margin:0 16px 10px;background:var(--white);
-  border:1px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;
-}
+/* ── FLIGHT CARD ── */
+.fc{margin:0 16px 10px;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;}
 .fc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .fc-badge{font-size:11px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);border-radius:20px;padding:3px 10px;}
 .fc-num{font-size:12px;color:var(--ink-m);}
 .fc-route{display:flex;align-items:center;gap:8px;}
 .fc-city{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--ink);}
-.fc-mid{flex:1;display:flex;align-items:center;gap:0;}
-.fc-line{flex:1;height:1px;background:var(--sage-l);}
-.fc-ico{color:var(--sage-m);margin:0 4px;}
-.fc-times{display:flex;justify-content:space-between;margin-top:6px;}
+.fc-mid{flex:1;display:flex;align-items:center;}
+.fc-ln{flex:1;height:1px;background:var(--sage-l);}
+.fc-pl{color:var(--sage-m);margin:0 4px;flex-shrink:0;}
+.fc-times{display:flex;justify-content:space-between;margin-top:5px;}
 .fc-t{font-size:13px;color:var(--ink-m);}
 .fc-a{font-size:11px;color:var(--ink-t);margin-top:1px;}
-.fc-status{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:10px;font-size:12px;color:var(--ink-t);}
+.fc-status{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:9px;font-size:12px;color:var(--ink-t);}
 .fc-ok{width:7px;height:7px;border-radius:50%;background:var(--sage);}
 
-/* ─── Detail screen ─────────────────────────────── */
-.det-head{display:flex;align-items:center;gap:12px;padding:8px 16px 4px;}
-.back-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-m);flex-shrink:0;}
-.det-title{font-family:'Noto Serif TC',serif;font-size:17px;color:var(--ink);font-weight:400;}
+/* ── TIMELINE ── */
+.tl-wrap{padding:0 16px;}
+.tl-row{display:flex;gap:10px;}
+.tl-spine{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;padding-top:12px;}
+.tl-time{font-size:11px;color:var(--ink-t);white-space:nowrap;}
+.tl-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sage-l);background:var(--cream);margin:5px 0 0;flex-shrink:0;}
+.tl-dot.on{background:var(--sage-l);}
+.tl-stem{width:1px;flex:1;min-height:16px;background:var(--line-s);margin-top:2px;}
+.tl-card{flex:1;background:var(--white);border:1px solid var(--line);border-radius:13px;
+  padding:12px 14px;margin-bottom:9px;transition:border-color .2s;}
+.tl-card:active{border-color:var(--sage-l);}
+.tl-card.now{border-color:var(--sage-l);background:var(--sage-p);}
+.tl-tag{font-size:11px;color:var(--ink-t);margin-bottom:3px;display:flex;align-items:center;gap:4px;}
+.tl-ttl{font-size:14px;color:var(--ink);font-weight:400;line-height:1.35;}
+.tl-sub{font-size:12px;color:var(--ink-m);margin-top:3px;line-height:1.5;}
+.tl-cost{display:inline-block;font-size:12px;color:var(--stone);background:var(--stone-p);
+  border:1px solid var(--stone-l);border-radius:6px;padding:2px 9px;margin-top:6px;}
+.tl-edit{font-size:12px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);
+  border-radius:7px;padding:4px 10px;cursor:pointer;margin-top:7px;display:inline-block;}
+
+/* ── NAV BAR ── */
+.nav{position:absolute;bottom:0;left:0;right:0;
+  height:calc(54px + var(--sb));padding-bottom:var(--sb);
+  background:rgba(247,244,238,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);display:flex;align-items:flex-start;padding-top:8px;z-index:50;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:11px;color:var(--stone-m);cursor:pointer;transition:color .2s;letter-spacing:.03em;}
+.nav-tab.on{color:var(--sage);}
+.nav-tab:active svg{transform:scale(.85);}
+
+/* ── DETAIL HEAD ── */
+.det-head{display:flex;align-items:center;gap:10px;padding:calc(var(--st) + 2px) 16px 4px;flex-shrink:0;}
+.back-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--ink-m);flex-shrink:0;}
+.det-title{font-family:'Noto Serif TC',serif;font-size:16px;color:var(--ink);font-weight:400;}
 .det-sub{font-size:12px;color:var(--ink-t);margin-top:2px;}
-.more-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-m);}
 
 /* sum pills */
-.sum-row{display:flex;gap:8px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none;}
+.sum-row{display:flex;gap:7px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none;}
 .sum-row::-webkit-scrollbar{display:none;}
-.sum-pill{flex-shrink:0;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;}
-.sum-v{font-size:17px;color:var(--ink);font-weight:400;}
-.sum-k{font-size:11px;color:var(--ink-t);margin-top:2px;letter-spacing:.05em;}
+.sum-pill{flex-shrink:0;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:9px 14px;text-align:center;}
+.sum-v{font-size:16px;color:var(--ink);font-weight:400;}
+.sum-k{font-size:10px;color:var(--ink-t);margin-top:2px;letter-spacing:.04em;}
 
 /* tabs */
-.tabs{display:flex;padding:12px 16px 0;gap:2px;border-bottom:1px solid var(--line);}
-.tab{padding:8px 14px;font-size:14px;color:var(--ink-t);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s,border-color .2s;white-space:nowrap;}
+.tabs{display:flex;padding:12px 16px 0;gap:2px;border-bottom:1px solid var(--line);flex-shrink:0;}
+.tab{padding:8px 12px;font-size:13px;color:var(--ink-t);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s,border-color .2s;}
 .tab.on{color:var(--sage);border-bottom-color:var(--sage);}
-.tab-body{display:none;}
-.tab-body.on{display:block;}
-
-/* day header in timeline */
-.day-hd{display:flex;align-items:center;gap:10px;padding:16px 0 10px;font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;}
+.tb-body{display:none;}
+.tb-body.on{display:block;}
+.day-hd{display:flex;align-items:center;gap:10px;padding:16px 0 10px;
+  font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;}
 .day-hd::after{content:'';flex:1;height:1px;background:var(--line-s);}
-.day-hd.today{color:var(--sage);}
+.day-hd.td{color:var(--sage);}
 
-/* draggable */
-.tl-card.dragging{opacity:.5;border:1px dashed var(--sage-m);}
-.drag-handle{cursor:grab;color:var(--stone-l);padding:0 4px 0 0;flex-shrink:0;}
-.drag-handle:active{cursor:grabbing;}
+/* ── MORE MENU ── */
+.more-menu{position:absolute;top:calc(var(--st) + 44px);right:16px;
+  background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 8px 32px rgba(24,24,14,.12);z-index:200;
+  transform:scale(.95) translateY(-4px);opacity:0;pointer-events:none;
+  transition:transform .2s,opacity .2s;min-width:160px;}
+.more-menu.show{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+.mi{display:flex;align-items:center;gap:10px;padding:13px 16px;
+  border-bottom:1px solid var(--line-s);cursor:pointer;font-size:14px;color:var(--ink-m);}
+.mi:last-child{border-bottom:none;}
+.mi:active{background:var(--sage-p);}
+.mi.red{color:var(--warn);}
 
-/* ─── Expense ────────────────────────────────────── */
-.donut-wrap{margin:12px 16px 0;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px;}
-.donut-inner{display:flex;align-items:center;gap:18px;}
-.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.leg-name{font-size:13px;color:var(--ink-m);flex:1;}
-.leg-val{font-size:13px;color:var(--ink-m);}
-.leg-pct{font-size:11px;color:var(--ink-t);min-width:30px;text-align:right;}
-
-.day-spend{margin:10px 16px 0;background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
-.ds-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line-s);gap:10px;}
+/* ── EXPENSE ── */
+.donut-wrap{margin:10px 16px 0;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.leg-name{font-size:12px;color:var(--ink-m);flex:1;}
+.leg-val{font-size:12px;color:var(--ink-m);}
+.leg-pct{font-size:11px;color:var(--ink-t);min-width:28px;text-align:right;}
+.day-spend{margin:8px 16px 0;background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.ds-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line-s);gap:10px;}
 .ds-row:last-child{border-bottom:none;}
-.ds-day{font-size:13px;color:var(--ink-m);width:70px;flex-shrink:0;}
-.ds-bar-w{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
-.ds-bar-f{height:100%;border-radius:2px;background:var(--sage-l);}
-.ds-amt{font-size:14px;color:var(--ink-m);font-weight:400;}
-
-.settle-wrap{margin:10px 16px 0;}
-.settle-lbl{font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;margin-bottom:10px;}
-.settle-card{background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:8px;}
-.settle-row{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line-s);}
+.ds-day{font-size:13px;color:var(--ink-m);width:72px;flex-shrink:0;}
+.ds-bw{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+.ds-bf{height:100%;border-radius:2px;background:var(--sage-l);}
+.ds-amt{font-size:13px;color:var(--ink-m);font-weight:400;}
+.settle-wrap{margin:8px 16px 0;}
+.settle-lbl{font-size:11px;letter-spacing:.16em;color:var(--ink-t);text-transform:uppercase;margin-bottom:8px;}
+.settle-card{background:var(--white);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:6px;}
+.settle-row{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line-s);}
 .settle-row:last-child{border-bottom:none;}
-.ava{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--white);flex-shrink:0;}
-.settle-name{flex:1;font-size:14px;color:var(--ink);}
-.settle-amt{font-size:14px;}
+.ava{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;}
+.sname{flex:1;font-size:13px;color:var(--ink);}
+.samt{font-size:13px;}
 .recv{color:var(--sage);}
 .owe{color:var(--warn);}
 
-/* ─── Checklist ──────────────────────────────────── */
-.check-list{padding:4px 16px 0;}
-.check-cat-hd{display:flex;align-items:center;gap:10px;padding:16px 0 8px;font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;}
-.check-cat-hd::after{content:'';flex:1;height:1px;background:var(--line-s);}
-.check-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-s);cursor:pointer;}
-.check-row:last-child{border-bottom:none;}
-.chk{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--stone-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+/* ── CHECKLIST ── */
+.check-list{padding:0 16px;}
+.chk-cat-hd{display:flex;align-items:center;gap:10px;padding:16px 0 8px;
+  font-size:11px;letter-spacing:.16em;color:var(--ink-t);text-transform:uppercase;}
+.chk-cat-hd::after{content:'';flex:1;height:1px;background:var(--line-s);}
+.chk-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line-s);cursor:pointer;}
+.chk-row:last-child{border-bottom:none;}
+.chk{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--stone-l);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
 .chk.done{background:var(--sage-l);border-color:var(--sage-l);}
-.chk-name{flex:1;font-size:15px;color:var(--ink);font-weight:400;transition:color .2s;}
+.chk-name{flex:1;font-size:14px;color:var(--ink);font-weight:400;transition:color .2s;}
 .chk-name.done{color:var(--ink-t);text-decoration:line-through;}
-.chk-tag{font-size:11px;color:var(--warn);background:var(--warn-p);border:1px solid rgba(176,90,40,.2);border-radius:5px;padding:2px 8px;flex-shrink:0;}
-.chk-del{color:var(--stone-l);font-size:18px;padding:0 4px;cursor:pointer;flex-shrink:0;}
+.chk-tag{font-size:11px;color:var(--warn);background:var(--warn-p);
+  border:1px solid rgba(176,90,40,.18);border-radius:5px;padding:2px 7px;flex-shrink:0;}
+.chk-del{color:var(--stone-l);font-size:20px;padding:0 2px;cursor:pointer;flex-shrink:0;line-height:1;}
+.add-row{display:flex;align-items:center;gap:8px;padding:10px 0;
+  border-top:1px dashed var(--line);margin-top:4px;}
+.add-inp{flex:1;border:none;background:transparent;font-size:14px;
+  font-family:'Noto Sans TC',sans-serif;font-weight:300;color:var(--ink);outline:none;}
+.add-inp::placeholder{color:var(--stone-l);}
+.add-btn{font-size:12px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);
+  border-radius:7px;padding:5px 11px;cursor:pointer;white-space:nowrap;}
+.prog-wrap{margin:6px 16px 2px;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--sage-m);border-radius:2px;transition:width .5s ease;}
 
-.add-item-row{
-  display:flex;align-items:center;gap:10px;padding:12px 0;
-  border-top:1px dashed var(--line);margin-top:4px;
-}
-.add-item-input{
-  flex:1;border:none;background:transparent;font-size:15px;
-  font-family:'Noto Sans TC',sans-serif;font-weight:300;color:var(--ink);outline:none;
-}
-.add-item-input::placeholder{color:var(--stone-l);}
-.add-item-btn{
-  font-size:13px;color:var(--sage);cursor:pointer;
-  background:var(--sage-p);border:1px solid var(--sage-l);
-  border-radius:8px;padding:5px 12px;white-space:nowrap;
-}
-
-/* progress bar */
-.progress-bar-wrap{margin:8px 16px 0;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
-.progress-bar-fill{height:100%;background:var(--sage-m);border-radius:2px;transition:width .5s ease;}
-
-/* ─── Weather tab ────────────────────────────────── */
-.wx-full{padding:14px 16px 100px;}
-.wx-card{background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:10px;}
-.wx-card-hd{padding:11px 16px;font-size:11px;letter-spacing:.16em;color:var(--ink-t);border-bottom:1px solid var(--line-s);}
-.wx-day-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line-s);}
-.wx-day-row:last-child{border-bottom:none;}
-.wx-day-row.today-row{background:var(--sage-p);}
-.wx-day-lbl{font-size:12px;color:var(--ink-t);width:56px;flex-shrink:0;}
-.wx-day-lbl.today-lbl{color:var(--sage);font-weight:400;}
-.wx-day-cond{flex:1;font-size:13px;color:var(--ink-m);}
-.wx-day-temp{font-size:13px;color:var(--ink-m);}
-.wx-day-pct{font-size:11px;padding:2px 9px;border-radius:10px;}
-.wx-pct-ok{color:var(--sage);background:var(--sage-p);}
-.wx-pct-warn{color:var(--warn);background:var(--warn-p);}
-.outfit-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;}
-.outfit-item{font-size:13px;color:var(--ink-m);padding:10px 14px;background:var(--sage-p);border-radius:10px;line-height:1.6;margin-bottom:8px;}
-.outfit-item:last-child{margin-bottom:0;}
-.outfit-item.warn-item{background:var(--warn-p);}
-
-/* ─── Overlay / Sheet ────────────────────────────── */
-.overlay{
-  position:fixed;inset:0;background:rgba(24,24,14,.35);
-  z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;
-}
-.overlay.show{opacity:1;pointer-events:all;}
-.sheet{
-  position:absolute;bottom:0;left:0;right:0;
-  background:var(--white);border-radius:28px 28px 0 0;
-  padding:0 0 calc(20px + var(--safe-bot));
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
-  max-height:90vh;overflow-y:auto;
-}
-.overlay.show .sheet{transform:translateY(0);}
-.sheet-handle{width:36px;height:4px;background:var(--stone-l);border-radius:2px;margin:14px auto 0;}
-.sheet-title{font-family:'Noto Serif TC',serif;font-size:17px;color:var(--ink);padding:16px 20px 12px;}
-.sheet-rule{height:1px;background:var(--line);margin:0 20px 14px;}
-.f-row{padding:0 20px 14px;display:flex;flex-direction:column;gap:5px;}
-.f-lbl{font-size:11px;letter-spacing:.12em;color:var(--ink-t);}
-.f-inp{border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:15px;font-family:'Noto Sans TC',sans-serif;font-weight:300;color:var(--ink);background:var(--cream);outline:none;transition:border-color .2s;width:100%;}
-.f-inp:focus{border-color:var(--sage-m);}
-.pills{display:flex;gap:7px;flex-wrap:wrap;padding:0 20px 14px;}
-.pill{padding:7px 14px;border:1px solid var(--line);border-radius:20px;font-size:13px;color:var(--ink-m);cursor:pointer;transition:all .15s;background:transparent;}
-.pill.sel{background:var(--sage-p);border-color:var(--sage-l);color:var(--sage);}
-.pay-tog{display:flex;margin:0 20px 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-.pay-opt{flex:1;padding:10px;text-align:center;font-size:14px;color:var(--ink-t);cursor:pointer;transition:all .2s;}
-.pay-opt.sel{background:var(--ink);color:var(--cream);}
-.sheet-btn{display:block;width:calc(100% - 40px);margin:4px 20px 0;padding:15px;background:var(--ink);color:var(--cream);border:none;border-radius:14px;font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:300;letter-spacing:.06em;cursor:pointer;transition:opacity .2s;}
-.sheet-btn:active{opacity:.8;}
-
-/* FAB */
-.fab{
-  position:absolute;bottom:calc(72px + var(--safe-bot) + 14px);right:20px;
-  width:52px;height:52px;border-radius:50%;background:var(--ink);border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:var(--cream);
-  box-shadow:0 4px 20px rgba(24,24,14,.22);transition:transform .2s;z-index:40;
-}
-.fab:active{transform:scale(.9);}
-
-/* Trip picker */
-.picker{
-  position:absolute;top:0;left:16px;right:16px;
-  background:var(--white);border:1px solid var(--line);border-radius:18px;overflow:hidden;
-  transform:translateY(-8px) scale(.97);transition:transform .25s cubic-bezier(.32,.72,0,1),opacity .25s;opacity:0;
-}
-.overlay.show .picker{transform:translateY(0) scale(1);opacity:1;}
-.pi-item{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line-s);cursor:pointer;transition:background .15s;}
-.pi-item:last-child{border-bottom:none;}
-.pi-item:active{background:var(--sage-p);}
-.pi-dot{width:9px;height:9px;border-radius:50%;background:var(--stone-l);flex-shrink:0;}
-.pi-dot.live{background:var(--sage);}
-.pi-name{font-family:'Noto Serif TC',serif;font-size:15px;color:var(--ink);flex:1;}
-.pi-date{font-size:12px;color:var(--ink-t);}
-
-/* More menu */
-.more-menu{
-  position:absolute;top:60px;right:16px;
-  background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;
-  box-shadow:0 8px 32px rgba(24,24,14,.12);z-index:300;
-  transform:scale(.95) translateY(-4px);opacity:0;pointer-events:none;
-  transition:transform .2s,opacity .2s;
-}
-.more-menu.show{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
-.more-item{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line-s);cursor:pointer;font-size:14px;color:var(--ink-m);min-width:170px;}
-.more-item:last-child{border-bottom:none;}
-.more-item:active{background:var(--sage-p);}
-.more-item.danger{color:var(--warn);}
-
-/* Map placeholder */
-.map-ph{margin:14px 16px 0;background:var(--sage-p);border:1px solid var(--sage-l);border-radius:16px;height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
-.map-ph-lbl{font-size:13px;color:var(--sage);}
-.map-ph-sub{font-size:12px;color:var(--ink-t);}
-.spot-list{background:var(--white);border:1px solid var(--line);border-radius:14px;margin:10px 16px 0;overflow:hidden;}
-.spot-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line-s);}
+/* ── MAP ── */
+.map-ph{margin:12px 16px 0;background:var(--sage-p);border:1px solid var(--sage-l);
+  border-radius:14px;height:180px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;}
+.spot-list{background:var(--white);border:1px solid var(--line);border-radius:13px;margin:8px 16px 0;overflow:hidden;}
+.spot-row{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line-s);cursor:pointer;text-decoration:none;}
 .spot-row:last-child{border-bottom:none;}
-.spot-num{width:22px;height:22px;border-radius:50%;background:var(--sage-p);border:1px solid var(--sage-l);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--sage);flex-shrink:0;}
+.spot-row:active{background:var(--sage-p);}
+.spot-num{width:22px;height:22px;border-radius:50%;background:var(--sage-p);border:1px solid var(--sage-l);
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--sage);flex-shrink:0;}
 .spot-name{flex:1;font-size:14px;color:var(--ink);}
 .spot-day{font-size:12px;color:var(--ink-t);}
+.maps-link{font-size:12px;color:var(--sage);margin-left:4px;}
 
-/* Edit trip event sheet additions */
-.tl-card-actions{display:flex;gap:8px;margin-top:8px;}
-.card-action-btn{font-size:12px;color:var(--sage);background:var(--sage-p);border:1px solid var(--sage-l);border-radius:7px;padding:4px 10px;cursor:pointer;}
+/* weather full */
+.wx-full{padding:10px 16px 100px;}
+.wx-card{background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:8px;}
+.wx-card-hd{padding:11px 16px;font-size:11px;letter-spacing:.14em;color:var(--ink-t);border-bottom:1px solid var(--line-s);}
+.wx-dr{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line-s);}
+.wx-dr:last-child{border-bottom:none;}
+.wx-dr.tdr{background:var(--sage-p);}
+.wx-dlbl{font-size:12px;color:var(--ink-t);width:52px;flex-shrink:0;}
+.wx-dlbl.tl{color:var(--sage);font-weight:400;}
+.wx-dcond{flex:1;font-size:13px;color:var(--ink-m);}
+.wx-dtemp{font-size:13px;color:var(--ink-m);}
+.wx-dpct{font-size:11px;padding:2px 8px;border-radius:10px;}
+.pok{color:var(--sage);background:var(--sage-p);}
+.pwarn{color:var(--warn);background:var(--warn-p);}
+.outfit-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px;}
+.outfit-hd{font-size:11px;letter-spacing:.14em;color:var(--ink-t);margin-bottom:10px;}
+.outfit-it{font-size:13px;color:var(--ink-m);padding:10px 13px;background:var(--sage-p);border-radius:9px;line-height:1.6;margin-bottom:7px;}
+.outfit-it:last-child{margin-bottom:0;}
+.outfit-it.warn{background:var(--warn-p);}
 
-/* Progress indicator */
-.check-progress{display:flex;align-items:center;gap:10px;padding:6px 16px 4px;}
-.check-prog-lbl{font-size:12px;color:var(--ink-t);}
-.check-prog-val{font-size:13px;color:var(--sage);font-weight:400;margin-left:auto;}
+/* ── OVERLAY / SHEET ── */
+.overlay{position:fixed;inset:0;background:rgba(24,24,14,.35);z-index:300;
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.sheet{position:absolute;bottom:0;left:0;right:0;
+  background:var(--white);border-radius:24px 24px 0 0;
+  padding-bottom:calc(16px + var(--sb));
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
+  max-height:88vh;overflow-y:auto;}
+.overlay.show .sheet{transform:translateY(0);}
+.sh-handle{width:36px;height:4px;background:var(--stone-l);border-radius:2px;margin:13px auto 0;}
+.sh-title{font-family:'Noto Serif TC',serif;font-size:17px;color:var(--ink);padding:14px 20px 11px;}
+.sh-rule{height:1px;background:var(--line);margin:0 20px 12px;}
+.frow{padding:0 20px 12px;display:flex;flex-direction:column;gap:4px;}
+.flbl{font-size:11px;letter-spacing:.1em;color:var(--ink-t);}
+.finp{border:1px solid var(--line);border-radius:10px;padding:11px 14px;
+  font-size:15px;font-family:'Noto Sans TC',sans-serif;font-weight:300;
+  color:var(--ink);background:var(--cream);outline:none;width:100%;transition:border-color .2s;}
+.finp:focus{border-color:var(--sage-m);}
+.pills{display:flex;gap:7px;flex-wrap:wrap;padding:0 20px 12px;}
+.pill{padding:7px 13px;border:1px solid var(--line);border-radius:20px;font-size:13px;color:var(--ink-m);cursor:pointer;transition:all .15s;}
+.pill.sel{background:var(--sage-p);border-color:var(--sage-l);color:var(--sage);}
+.pay-tog{display:flex;margin:0 20px 12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.po{flex:1;padding:10px;text-align:center;font-size:14px;color:var(--ink-t);cursor:pointer;transition:all .2s;}
+.po.sel{background:var(--ink);color:var(--cream);}
+.sh-btn{display:block;width:calc(100% - 40px);margin:6px 20px 0;padding:14px;
+  background:var(--ink);color:var(--cream);border:none;border-radius:13px;
+  font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:300;letter-spacing:.06em;
+  cursor:pointer;transition:opacity .2s;}
+.sh-btn:active{opacity:.8;}
 
-/* Toast */
-.toast{
-  position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);
+/* PICKER */
+.picker{position:absolute;left:16px;right:16px;
+  background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  transform:translateY(-6px) scale(.97);transition:transform .25s cubic-bezier(.32,.72,0,1),opacity .25s;
+  opacity:0;z-index:1;}
+.overlay.show .picker{transform:translateY(0) scale(1);opacity:1;}
+.pi{display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid var(--line-s);cursor:pointer;transition:background .15s;}
+.pi:last-child{border-bottom:none;}
+.pi:active{background:var(--sage-p);}
+.pi-dot{width:8px;height:8px;border-radius:50%;background:var(--stone-l);flex-shrink:0;}
+.pi-dot.live{background:var(--sage);}
+.pi-name{font-family:'Noto Serif TC',serif;font-size:14px;color:var(--ink);flex:1;}
+.pi-date{font-size:11px;color:var(--ink-t);}
+
+/* FAB */
+.fab{position:absolute;bottom:calc(62px + var(--sb) + 12px);right:16px;
+  width:50px;height:50px;border-radius:50%;background:var(--ink);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:var(--cream);
+  box-shadow:0 4px 18px rgba(24,24,14,.22);transition:transform .2s;z-index:40;}
+.fab:active{transform:scale(.9);}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(68px + var(--sb));left:50%;
+  transform:translateX(-50%) translateY(14px);
   background:var(--ink-s);color:var(--cream);font-size:13px;
-  padding:10px 20px;border-radius:20px;opacity:0;
-  transition:opacity .3s,transform .3s;z-index:500;pointer-events:none;white-space:nowrap;
-}
+  padding:9px 18px;border-radius:20px;opacity:0;
+  transition:opacity .3s,transform .3s;z-index:500;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── expense records ── */
+.exp-rec{background:var(--white);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.exp-rec-main{flex:1;}
+.exp-rec-name{font-size:14px;color:var(--ink);font-weight:400;}
+.exp-rec-sub{font-size:12px;color:var(--ink-t);margin-top:2px;}
+.exp-rec-amt{font-size:16px;color:var(--ink-m);font-weight:400;}
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-art">
-    <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- sky gradient circle -->
-      <circle cx="70" cy="70" r="68" fill="#f0ece5" stroke="#d4cfc8" stroke-width="1"/>
-      <!-- sun -->
-      <circle cx="38" cy="42" r="12" fill="none" stroke="#7a9e84" stroke-width="2"/>
-      <line x1="38" y1="24" x2="38" y2="18" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="38" y1="60" x2="38" y2="66" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="56" y1="42" x2="62" y2="42" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="20" y1="42" x2="14" y2="42" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="51" y1="29" x2="55" y2="25" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="25" y1="55" x2="21" y2="59" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="51" y1="55" x2="55" y2="59" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="25" y1="29" x2="21" y2="25" stroke="#7a9e84" stroke-width="1.8" stroke-linecap="round"/>
-      <!-- birds -->
-      <path d="M80 34 Q85 30 90 34" fill="none" stroke="#9e9a8c" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M94 28 Q98 24 102 28" fill="none" stroke="#9e9a8c" stroke-width="1.5" stroke-linecap="round"/>
-      <!-- main mountain -->
-      <path d="M10 115 L55 45 L100 105 L118 72 L132 115 Z" fill="none" stroke="#5a8f6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-      <!-- snow cap -->
-      <path d="M47 60 L55 45 L63 60 Z" fill="#e8f2e8" stroke="#5a8f6a" stroke-width="1.5" stroke-linejoin="round"/>
-      <!-- background hill -->
-      <path d="M8 115 L30 80 L52 100" fill="none" stroke="#9e9a8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
-      <!-- horizon line -->
-      <line x1="8" y1="115" x2="132" y2="115" stroke="#5a8f6a" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-      <!-- trees -->
-      <line x1="108" y1="115" x2="108" y2="98" stroke="#5a8f6a" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
-      <polyline points="100,107 108,93 116,107" fill="none" stroke="#5a8f6a" stroke-width="1.8" stroke-linejoin="round" opacity="0.65"/>
-      <line x1="122" y1="115" x2="122" y2="103" stroke="#5a8f6a" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/>
-      <polyline points="116,110 122,100 128,110" fill="none" stroke="#5a8f6a" stroke-width="1.5" stroke-linejoin="round" opacity="0.45"/>
-      <!-- path dots -->
-      <circle cx="30" cy="120" r="2" fill="#5a8f6a" opacity="0.4"/>
-      <circle cx="42" cy="122" r="1.8" fill="#5a8f6a" opacity="0.3"/>
-      <circle cx="54" cy="120" r="2" fill="#5a8f6a" opacity="0.4"/>
-    </svg>
-  </div>
-  <div class="splash-title">Ryoki</div>
-  <div class="splash-sub">旅 跡</div>
-  <div class="splash-dot"></div>
+  <canvas id="sp-canvas" width="120" height="120" style="margin-bottom:22px;"></canvas>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--ink);letter-spacing:.05em;">Ryoki</div>
+  <div style="font-family:'Noto Serif TC',serif;font-size:12px;color:var(--ink-t);letter-spacing:.3em;margin-top:5px;">旅 跡</div>
+  <div class="sp-dot"></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
-
-<!-- APP -->
 <div id="app">
 
-<!-- ═══════════════════════════════════════════════
-     HOME
-═══════════════════════════════════════════════ -->
-<div class="screen" id="s-home">
-  <div class="scroll">
-    <!-- topbar -->
-    <div class="topbar" style="padding-top:calc(var(--safe-top) + 10px)">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--ink);">Ryoki <span style="font-family:'Noto Serif TC',serif;font-size:13px;color:var(--ink-t);letter-spacing:.15em;">旅跡</span></div>
-      <button class="icon-btn" onclick="openNewTrip()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-    </div>
-
-    <!-- trip bar -->
+<!-- ══════════════ HOME ══════════════ -->
+<div class="scr" id="s-home">
+  <div class="topbar">
+    <div class="logo">Ryoki <span class="logo-sub">旅跡</span></div>
+    <button class="iBtn" onclick="openOv('ov-new-trip')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+  <div class="scrl">
     <div class="trip-bar">
-      <div class="trip-bar-top" onclick="openPicker()">
-        <div class="trip-bar-left">
-          <div class="trip-live-dot"></div>
-          <div>
-            <div class="trip-name">北海道 初雪之旅</div>
-            <div class="trip-day">Day 3 · 2月12日 週三</div>
-          </div>
+      <div class="tb-top" onclick="openOv('ov-picker')">
+        <div class="tb-left">
+          <div class="live-dot"></div>
+          <div><div class="tb-name" id="cur-trip-name">北海道 初雪之旅</div><div class="tb-day">Day 3 · 2月12日 週三</div></div>
         </div>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-t)" stroke-width="1.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink-t)" stroke-width="1.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="wx-row">
-        <div class="wx-ico">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="wx-temp">-3°<span style="font-size:16px;color:var(--ink-m)"> / -9°C</span></div>
+        <div class="wx-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="wx-temp">-3° <span style="font-size:15px;color:var(--ink-m)">/ -9°C</span></div>
           <div class="wx-desc">晴時多雲 · 體感 -8°C</div>
-          <div class="wx-rain"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>明日降雪 20%，注意路面結冰</div>
+          <div class="wx-rain">明日降雪 20%，注意路面結冰</div>
         </div>
-        <div class="wx-outfit">保暖外套＋防滑鞋</div>
+        <div class="wx-tag">保暖外套＋防滑鞋</div>
       </div>
-      <div class="spend-row">
-        <span class="spend-lbl">今日花費</span>
-        <span class="spend-val">¥ 4,200</span>
-      </div>
-      <div class="spend-track"><div class="spend-fill" id="spend-fill" style="width:42%"></div></div>
+      <div class="spend-row"><span class="spend-lbl">今日花費</span><span class="spend-val">¥ 4,200</span></div>
+      <div class="spend-trk"><div class="spend-fill" id="sf" style="width:0"></div></div>
     </div>
 
-    <!-- flight -->
     <div class="sec"><span class="sec-lbl">今日航班</span></div>
-    <div class="flight-card" onclick="nav('s-detail')">
-      <div class="fc-top">
-        <span class="fc-badge">✅ 準時</span>
-        <span class="fc-num">CI 110</span>
-      </div>
+    <div class="fc" onclick="goTo('s-detail')">
+      <div class="fc-top"><span class="fc-badge">✅ 準時</span><span class="fc-num">CI 110</span></div>
       <div class="fc-route">
-        <div>
-          <div class="fc-city">TPE</div>
-          <div class="fc-a">桃園 T2</div>
-        </div>
-        <div class="fc-mid">
-          <div class="fc-line"></div>
-          <svg class="fc-ico" width="16" height="16" viewBox="0 0 24 24" fill="var(--sage-m)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
-          <div class="fc-line"></div>
-        </div>
-        <div style="text-align:right">
-          <div class="fc-city">CTS</div>
-          <div class="fc-a" style="text-align:right">新千歲 T1</div>
-        </div>
+        <div><div class="fc-city">TPE</div><div class="fc-a">桃園 T2</div></div>
+        <div class="fc-mid"><div class="fc-ln"></div><svg class="fc-pl" width="15" height="15" viewBox="0 0 24 24" fill="var(--sage-m)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg><div class="fc-ln"></div></div>
+        <div style="text-align:right"><div class="fc-city">CTS</div><div class="fc-a" style="text-align:right">新千歲 T1</div></div>
       </div>
-      <div class="fc-times">
-        <div><div class="fc-t">07:30</div></div>
-        <div><div class="fc-t">11:50</div></div>
-      </div>
+      <div class="fc-times"><div><div class="fc-t">07:30</div></div><div><div class="fc-t">11:50</div></div></div>
       <div class="fc-status"><div class="fc-ok"></div>準時出發 · 行李 23kg · 座位 24A</div>
     </div>
 
-    <!-- today timeline -->
-    <div class="sec">
-      <span class="sec-lbl">今日行程</span>
-      <span class="sec-action" onclick="nav('s-detail')">全部 →</span>
-    </div>
+    <div class="sec"><span class="sec-lbl">今日行程</span><span class="sec-act" onclick="goTo('s-detail')">全部 →</span></div>
     <div class="tl-wrap">
-      <div class="tl-row">
-        <div class="tl-spine"><div class="tl-time">11:50</div><div class="tl-dot on"></div><div class="tl-line"></div></div>
-        <div class="tl-card now">
-          <div class="tl-tag">✈️ 抵達 · 進行中</div>
-          <div class="tl-ttl">新千歲機場入境</div>
-          <div class="tl-sub">領取行李 → JR 前往札幌</div>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-spine"><div class="tl-time">14:00</div><div class="tl-dot"></div><div class="tl-line"></div></div>
-        <div class="tl-card">
-          <div class="tl-tag">🏨 住宿</div>
-          <div class="tl-ttl">Cross Hotel 札幌 入住</div>
-          <div class="tl-sub">訂位代號 XH2041 · 4晚</div>
-          <div class="tl-cost">¥ 3,700 / 晚</div>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-spine"><div class="tl-time">17:30</div><div class="tl-dot"></div><div class="tl-line"></div></div>
-        <div class="tl-card">
-          <div class="tl-tag">📍 景點</div>
-          <div class="tl-ttl">大通公園 雪祭會場</div>
-          <div class="tl-sub">冰雕展示 · 帶暖暖包！</div>
-          <div class="tl-cost">免費</div>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-spine"><div class="tl-time">19:30</div><div class="tl-dot"></div></div>
-        <div class="tl-card">
-          <div class="tl-tag">🍽️ 晚餐</div>
-          <div class="tl-ttl">だるま 狸小路 — 成吉思汗燒肉</div>
-          <div class="tl-sub">已訂位 · 4位</div>
-          <div class="tl-cost">¥ 2,800 / 人</div>
-        </div>
-      </div>
+      <div class="tl-row"><div class="tl-spine"><div class="tl-time">11:50</div><div class="tl-dot on"></div><div class="tl-stem"></div></div>
+        <div class="tl-card now"><div class="tl-tag">✈️ 抵達 · 進行中</div><div class="tl-ttl">新千歲機場入境</div><div class="tl-sub">領取行李 → JR 前往札幌</div></div></div>
+      <div class="tl-row"><div class="tl-spine"><div class="tl-time">14:00</div><div class="tl-dot"></div><div class="tl-stem"></div></div>
+        <div class="tl-card"><div class="tl-tag">🏨 住宿</div><div class="tl-ttl">Cross Hotel 札幌</div><div class="tl-sub">訂位代號 XH2041</div><div class="tl-cost">¥ 3,700 / 晚</div></div></div>
+      <div class="tl-row"><div class="tl-spine"><div class="tl-time">17:30</div><div class="tl-dot"></div><div class="tl-stem"></div></div>
+        <div class="tl-card"><div class="tl-tag">📍 景點</div><div class="tl-ttl">大通公園 雪祭會場</div><div class="tl-sub">冰雕展示 · 帶暖暖包！</div><div class="tl-cost">免費</div></div></div>
+      <div class="tl-row"><div class="tl-spine"><div class="tl-time">19:30</div><div class="tl-dot"></div></div>
+        <div class="tl-card"><div class="tl-tag">🍽️ 晚餐</div><div class="tl-ttl">だるま 狸小路 — 成吉思汗燒肉</div><div class="tl-sub">已訂位 · 4位</div><div class="tl-cost">¥ 2,800 / 人</div></div></div>
     </div>
   </div>
-
-  <!-- nav -->
   <nav class="nav">
-    <div class="nav-tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
-    <div class="nav-tab" onclick="nav('s-detail')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
-    <div class="nav-tab" onclick="nav('s-expense')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
-    <div class="nav-tab" onclick="nav('s-check')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
+    <div class="nav-tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
+    <div class="nav-tab" onclick="goTo('s-detail')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
+    <div class="nav-tab" onclick="goTo('s-exp')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
+    <div class="nav-tab" onclick="goTo('s-check')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
   </nav>
-
-  <!-- trip picker overlay -->
-  <div class="overlay" id="picker-ov" onclick="closePickerOv(event)">
-    <div class="picker" style="top:calc(var(--safe-top) + 60px)">
-      <div style="padding:14px 18px 10px;font-size:11px;letter-spacing:.18em;color:var(--ink-t);">選擇旅程</div>
-      <div class="pi-item" onclick="closeOverlay('picker-ov')">
-        <div class="pi-dot live"></div>
-        <div style="flex:1"><div class="pi-name">北海道 初雪之旅</div><div class="pi-date">2025年2月10–17日 · 進行中</div></div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="pi-item" onclick="closeOverlay('picker-ov')">
-        <div class="pi-dot"></div>
-        <div style="flex:1"><div class="pi-name">京都 楓紅散策</div><div class="pi-date">2024年11月20–25日 · 已完成</div></div>
-      </div>
-      <div class="pi-item" onclick="closeOverlay('picker-ov')">
-        <div class="pi-dot"></div>
-        <div style="flex:1"><div class="pi-name">釜山 海岸小旅行</div><div class="pi-date">2024年8月3–6日 · 已完成</div></div>
-      </div>
-      <div class="pi-item" onclick="openNewTrip()" style="border-top:1px solid var(--line);margin-top:2px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  <!-- picker overlay -->
+  <div class="overlay" id="ov-picker" onclick="closeOvBg(event,'ov-picker')">
+    <div class="picker" style="top:calc(var(--st) + 48px);" id="picker-box">
+      <div style="padding:13px 16px 9px;font-size:11px;letter-spacing:.18em;color:var(--ink-t);">選擇旅程</div>
+      <div id="trip-list-picker"></div>
+      <div class="pi" onclick="closeOv('ov-picker');openOv('ov-new-trip')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <div class="pi-name" style="color:var(--sage)">建立新旅程</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     DETAIL (行程)
-═══════════════════════════════════════════════ -->
-<div class="screen off" id="s-detail">
-  <div style="flex-shrink:0;padding-top:calc(var(--safe-top) + 4px);">
+<!-- ══════════════ DETAIL ══════════════ -->
+<div class="scr off" id="s-detail">
+  <div style="flex-shrink:0;">
     <div class="det-head">
-      <button class="back-btn" onclick="navBack('s-home')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      </button>
-      <div style="flex:1">
-        <div class="det-title">北海道 初雪之旅</div>
-        <div class="det-sub">2025年2月10日 – 17日 · 8天7夜</div>
-      </div>
-      <button class="more-btn" id="det-more-btn" onclick="toggleMore()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg>
-      </button>
-      <!-- more menu -->
-      <div class="more-menu" id="more-menu">
-        <div class="more-item" onclick="closeMore();showToast('匯出功能開發中')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>匯出行程</div>
-        <div class="more-item" onclick="closeMore();showToast('分享連結已複製')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享旅程</div>
-        <div class="more-item" onclick="closeMore();openAddEvent()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增事件</div>
-        <div class="more-item danger" onclick="closeMore();showToast('刪除功能需確認')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>刪除旅程</div>
-      </div>
+      <button class="back-btn" onclick="goBack('s-home')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+      <div style="flex:1;min-width:0;"><div class="det-title">北海道 初雪之旅</div><div class="det-sub">2025年2月10–17日 · 8天7夜</div></div>
+      <button class="iBtn" id="more-btn" onclick="toggleMore()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg></button>
+    </div>
+    <div class="more-menu" id="more-menu">
+      <div class="mi" onclick="closeMore();openOv('ov-add-event')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增事件</div>
+      <div class="mi" onclick="closeMore();showToast('分享連結已複製 ✅')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享旅程</div>
+      <div class="mi" onclick="closeMore();showToast('匯出功能即將推出')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>匯出行程</div>
+      <div class="mi red" onclick="closeMore();showToast('刪除需二次確認（正式版）')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>刪除旅程</div>
     </div>
     <div class="sum-row">
       <div class="sum-pill"><div class="sum-v">8</div><div class="sum-k">天數</div></div>
@@ -638,205 +445,82 @@ html,body{height:100%;overflow:hidden;background:var(--cream);font-family:'Noto 
       <div class="sum-pill"><div class="sum-v">3人</div><div class="sum-k">同行</div></div>
     </div>
     <div class="tabs">
-      <div class="tab on" onclick="switchTab(this,'tp-tl')">行程</div>
-      <div class="tab" onclick="switchTab(this,'tp-wx')">天氣</div>
-      <div class="tab" onclick="switchTab(this,'tp-map')">地圖</div>
+      <div class="tab on" onclick="swTab(this,'tp-tl')">行程</div>
+      <div class="tab" onclick="swTab(this,'tp-wx')">天氣</div>
+      <div class="tab" onclick="swTab(this,'tp-map')">地圖</div>
     </div>
   </div>
-
-  <div class="scroll" style="padding-top:0;">
-    <!-- timeline tab -->
-    <div class="tab-body on" id="tp-tl">
+  <div class="scrl" style="padding-top:0;">
+    <!-- TIMELINE TAB -->
+    <div class="tb-body on" id="tp-tl">
       <div style="padding:0 16px;">
-        <div class="day-hd">Day 1 · 2月10日 一</div>
-        <div class="tl-wrap" id="tl-day1" style="padding:0;">
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">07:30</div><div class="tl-dot on"></div><div class="tl-line"></div></div>
-            <div class="tl-card">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">✈️ 交通</div>
-                  <div class="tl-ttl">CI 110 · 桃園 → 新千歲</div>
-                  <div class="tl-sub">07:30 起飛 · 11:50 抵達 · T2 登機</div>
-                  <div class="tl-cost">¥ 18,500（三人）</div>
-                </div>
-                <div class="drag-handle">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg>
-                </div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('CI 110 · 桃園 → 新千歲','07:30','✈️ 交通','¥ 18,500（三人）')">編輯</div>
-              </div>
-            </div>
-          </div>
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">14:00</div><div class="tl-dot on"></div><div class="tl-line"></div></div>
-            <div class="tl-card">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">🏨 住宿</div>
-                  <div class="tl-ttl">定山渓温泉 章魚料理旅館</div>
-                  <div class="tl-sub">和式溫泉房 · 含晚餐 · 2晚</div>
-                  <div class="tl-cost">¥ 14,800 / 晚</div>
-                </div>
-                <div class="drag-handle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg></div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('定山渓温泉 章魚料理旅館','14:00','🏨 住宿','¥ 14,800 / 晚')">編輯</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="day-hd">Day 2 · 2月11日 二</div>
-        <div class="tl-wrap" id="tl-day2" style="padding:0;">
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">09:30</div><div class="tl-dot on"></div><div class="tl-line"></div></div>
-            <div class="tl-card">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">📍 景點</div>
-                  <div class="tl-ttl">小樽運河散步</div>
-                  <div class="tl-sub">積雪30cm · -4°C · 帶相機！</div>
-                  <div class="tl-cost">免費</div>
-                </div>
-                <div class="drag-handle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg></div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('小樽運河散步','09:30','📍 景點','免費')">編輯</div>
-              </div>
-            </div>
-          </div>
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">12:30</div><div class="tl-dot on"></div></div>
-            <div class="tl-card">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">🍜 午餐</div>
-                  <div class="tl-ttl">政寿司 本店 — 海鮮丼</div>
-                  <div class="tl-sub">強烈推薦！提前訂位</div>
-                  <div class="tl-cost">¥ 3,200 / 人</div>
-                </div>
-                <div class="drag-handle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg></div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('政寿司 本店 — 海鮮丼','12:30','🍜 午餐','¥ 3,200 / 人')">編輯</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="day-hd today">Day 3 · 2月12日 三 · 今天</div>
-        <div class="tl-wrap" id="tl-day3" style="padding:0;">
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">11:50</div><div class="tl-dot on"></div><div class="tl-line"></div></div>
-            <div class="tl-card now">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">🚃 進行中</div>
-                  <div class="tl-ttl">新千歲 → JR → 札幌</div>
-                  <div class="tl-sub">約36分鐘 · 持 Suica 直接搭</div>
-                  <div class="tl-cost">¥ 1,150 / 人</div>
-                </div>
-                <div class="drag-handle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg></div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('新千歲 → JR → 札幌','11:50','🚃 交通','¥ 1,150 / 人')">編輯</div>
-              </div>
-            </div>
-          </div>
-          <div class="tl-row" draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)">
-            <div class="tl-spine"><div class="tl-time">14:00</div><div class="tl-dot"></div></div>
-            <div class="tl-card">
-              <div style="display:flex;align-items:flex-start;gap:6px;">
-                <div style="flex:1">
-                  <div class="tl-tag">🏨 住宿</div>
-                  <div class="tl-ttl">Cross Hotel 札幌 入住</div>
-                  <div class="tl-sub">訂位代號 XH2041</div>
-                  <div class="tl-cost">¥ 3,700 / 晚</div>
-                </div>
-                <div class="drag-handle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg></div>
-              </div>
-              <div class="tl-card-actions">
-                <div class="card-action-btn" onclick="openEditEvent('Cross Hotel 札幌 入住','14:00','🏨 住宿','¥ 3,700 / 晚')">編輯</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="day-hd">Day 1 · 2月10日</div>
+        <div class="tl-wrap" id="tl-d1" style="padding:0;"></div>
+        <div class="day-hd">Day 2 · 2月11日</div>
+        <div class="tl-wrap" id="tl-d2" style="padding:0;"></div>
+        <div class="day-hd td">Day 3 · 2月12日 · 今天</div>
+        <div class="tl-wrap" id="tl-d3" style="padding:0;"></div>
+        <div style="height:80px;"></div>
       </div>
     </div>
-
-    <!-- weather tab -->
-    <div class="tab-body" id="tp-wx">
+    <!-- WEATHER TAB -->
+    <div class="tb-body" id="tp-wx">
       <div class="wx-full">
         <div class="wx-card">
           <div class="wx-card-hd">全程天氣一覽</div>
-          <div class="wx-day-row"><span class="wx-day-lbl">2/10 一</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-day-cond">晴</span><span class="wx-day-temp">-2 / -8°C</span><span class="wx-day-pct wx-pct-ok">雨10%</span></div>
-          <div class="wx-day-row"><span class="wx-day-lbl">2/11 二</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-day-cond">晴</span><span class="wx-day-temp">0 / -6°C</span><span class="wx-day-pct wx-pct-ok">雨15%</span></div>
-          <div class="wx-day-row today-row"><span class="wx-day-lbl today-lbl">2/12 三 ●</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-day-cond" style="color:var(--sage)">晴時多雲</span><span class="wx-day-temp" style="color:var(--sage)">-3 / -9°C</span><span class="wx-day-pct wx-pct-ok">雪20%</span></div>
-          <div class="wx-day-row"><span class="wx-day-lbl">2/13 四</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg><span class="wx-day-cond">多雲</span><span class="wx-day-temp">-5 / -12°C</span><span class="wx-day-pct wx-pct-warn">❄️雪65%</span></div>
-          <div class="wx-day-row"><span class="wx-day-lbl">2/14 五</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg><span class="wx-day-cond">陰雪</span><span class="wx-day-temp">-6 / -13°C</span><span class="wx-day-pct wx-pct-warn">❄️雪80%</span></div>
+          <div class="wx-dr"><span class="wx-dlbl">2/10 一</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-dcond">晴</span><span class="wx-dtemp">-2/-8°C</span><span class="wx-dpct pok">雨10%</span></div>
+          <div class="wx-dr"><span class="wx-dlbl">2/11 二</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-dcond">晴</span><span class="wx-dtemp">0/-6°C</span><span class="wx-dpct pok">雨15%</span></div>
+          <div class="wx-dr tdr"><span class="wx-dlbl tl">2/12 三●</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span class="wx-dcond" style="color:var(--sage)">晴時多雲</span><span class="wx-dtemp" style="color:var(--sage)">-3/-9°C</span><span class="wx-dpct pok">雪20%</span></div>
+          <div class="wx-dr"><span class="wx-dlbl">2/13 四</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg><span class="wx-dcond">多雲</span><span class="wx-dtemp">-5/-12°C</span><span class="wx-dpct pwarn">❄️雪65%</span></div>
+          <div class="wx-dr"><span class="wx-dlbl">2/14 五</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--stone-m)" stroke-width="1.4"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg><span class="wx-dcond">陰雪</span><span class="wx-dtemp">-6/-13°C</span><span class="wx-dpct pwarn">❄️雪80%</span></div>
         </div>
         <div class="outfit-card">
-          <div style="font-size:11px;letter-spacing:.16em;color:var(--ink-t);margin-bottom:12px;">穿搭建議</div>
-          <div class="outfit-item">🧥 今日 -3°C：羽絨外套＋發熱衣＋保暖褲<br>防滑雪靴必備，建議戴帽子、手套</div>
-          <div class="outfit-item warn-item">⚠️ 2/13–14 大雪預報：建議室內行程優先，攜帶暖暖包，注意路面結冰</div>
+          <div class="outfit-hd">穿搭建議</div>
+          <div class="outfit-it">🧥 今日 -3°C：羽絨外套＋發熱衣＋保暖褲，防滑雪靴必備，戴帽子手套</div>
+          <div class="outfit-it warn">⚠️ 2/13–14 大雪預報：建議室內行程，攜帶暖暖包，注意路面結冰</div>
         </div>
       </div>
     </div>
-
-    <!-- map tab -->
-    <div class="tab-body" id="tp-map">
+    <!-- MAP TAB -->
+    <div class="tb-body" id="tp-map">
       <div class="map-ph">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.3" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <div class="map-ph-lbl">Google Maps 整合</div>
-        <div class="map-ph-sub">正式版連接 Maps API 顯示路線</div>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.3" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div style="font-size:13px;color:var(--sage);">點擊景點直接開啟 Google Maps</div>
+        <div style="font-size:11px;color:var(--ink-t);">需安裝 Google Maps app</div>
       </div>
       <div class="spot-list">
-        <div class="spot-row"><div class="spot-num">1</div><span class="spot-name">新千歲機場</span><span class="spot-day">Day 1</span></div>
-        <div class="spot-row"><div class="spot-num">2</div><span class="spot-name">定山渓温泉</span><span class="spot-day">Day 1–2</span></div>
-        <div class="spot-row"><div class="spot-num">3</div><span class="spot-name">小樽運河</span><span class="spot-day">Day 2</span></div>
-        <div class="spot-row"><div class="spot-num" style="background:var(--line-s);border-color:var(--line);color:var(--ink-t)">4</div><span class="spot-name" style="color:var(--ink-t)">大通公園雪祭</span><span class="spot-day">Day 3</span></div>
-        <div class="spot-row"><div class="spot-num" style="background:var(--line-s);border-color:var(--line);color:var(--ink-t)">5</div><span class="spot-name" style="color:var(--ink-t)">旭山動物園</span><span class="spot-day">Day 4</span></div>
+        <a class="spot-row" href="https://maps.google.com/?q=新千歲機場" target="_blank"><div class="spot-num">1</div><span class="spot-name">新千歲機場</span><span class="spot-day">Day 1</span><span class="maps-link">→</span></a>
+        <a class="spot-row" href="https://maps.google.com/?q=定山渓温泉" target="_blank"><div class="spot-num">2</div><span class="spot-name">定山渓温泉</span><span class="spot-day">Day 1–2</span><span class="maps-link">→</span></a>
+        <a class="spot-row" href="https://maps.google.com/?q=小樽運河" target="_blank"><div class="spot-num">3</div><span class="spot-name">小樽運河</span><span class="spot-day">Day 2</span><span class="maps-link">→</span></a>
+        <a class="spot-row" href="https://maps.google.com/?q=大通公園+札幌" target="_blank"><div class="spot-num" style="background:var(--line-s);border-color:var(--line);color:var(--ink-t)">4</div><span class="spot-name" style="color:var(--ink-t)">大通公園雪祭</span><span class="spot-day">Day 3</span><span class="maps-link">→</span></a>
+        <a class="spot-row" href="https://maps.google.com/?q=旭山動物園" target="_blank"><div class="spot-num" style="background:var(--line-s);border-color:var(--line);color:var(--ink-t)">5</div><span class="spot-name" style="color:var(--ink-t)">旭山動物園</span><span class="spot-day">Day 4</span><span class="maps-link">→</span></a>
       </div>
     </div>
   </div>
-
-  <!-- add event FAB -->
-  <button class="fab" onclick="openAddEvent()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  </button>
-
+  <button class="fab" onclick="openOv('ov-add-event')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   <nav class="nav">
-    <div class="nav-tab" onclick="navBack('s-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
-    <div class="nav-tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
-    <div class="nav-tab" onclick="nav('s-expense')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
-    <div class="nav-tab" onclick="nav('s-check')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
+    <div class="nav-tab" onclick="goBack('s-home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
+    <div class="nav-tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
+    <div class="nav-tab" onclick="goTo('s-exp')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
+    <div class="nav-tab" onclick="goTo('s-check')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
   </nav>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     EXPENSE (記帳)
-═══════════════════════════════════════════════ -->
-<div class="screen off" id="s-expense">
-  <div style="flex-shrink:0;padding-top:calc(var(--safe-top) + 10px);">
-    <div class="topbar" style="padding-top:4px;">
-      <div class="topbar-title">記帳</div>
-      <span style="font-size:12px;color:var(--ink-t);">北海道 初雪之旅</span>
-    </div>
-  </div>
-  <div class="scroll" style="padding-top:0;">
+<!-- ══════════════ EXPENSE ══════════════ -->
+<div class="scr off" id="s-exp">
+  <div class="topbar"><div class="topbar-title" style="font-family:'Noto Serif TC',serif;font-size:19px;color:var(--ink);">記帳</div><span style="font-size:12px;color:var(--ink-t);">北海道 初雪之旅</span></div>
+  <div class="scrl" style="padding-top:0;">
     <div class="donut-wrap">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--ink-t);margin-bottom:14px;">花費分類</div>
-      <div class="donut-inner">
-        <svg width="104" height="104" viewBox="0 0 104 104">
-          <circle cx="52" cy="52" r="40" fill="none" stroke="var(--line)" stroke-width="14"/>
-          <circle cx="52" cy="52" r="40" fill="none" stroke="var(--sage-m)" stroke-width="14" stroke-dasharray="108 144" stroke-dashoffset="0" transform="rotate(-90 52 52)"/>
-          <circle cx="52" cy="52" r="40" fill="none" stroke="var(--sage-l)" stroke-width="14" stroke-dasharray="68 184" stroke-dashoffset="-108" transform="rotate(-90 52 52)"/>
-          <circle cx="52" cy="52" r="40" fill="none" stroke="var(--stone-l)" stroke-width="14" stroke-dasharray="45 207" stroke-dashoffset="-176" transform="rotate(-90 52 52)"/>
-          <circle cx="52" cy="52" r="40" fill="none" stroke="var(--stone-m)" stroke-width="14" stroke-dasharray="20 232" stroke-dashoffset="-221" transform="rotate(-90 52 52)"/>
-          <text x="52" y="48" text-anchor="middle" font-size="11" fill="var(--ink-m)" font-family="Noto Sans TC">總計</text>
-          <text x="52" y="63" text-anchor="middle" font-size="10" fill="var(--ink-t)" font-family="Noto Sans TC">¥68,400</text>
+      <div style="font-size:11px;letter-spacing:.14em;color:var(--ink-t);margin-bottom:12px;">花費分類</div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <svg width="100" height="100" viewBox="0 0 100 100" style="flex-shrink:0;">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--line)" stroke-width="13"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--sage-m)" stroke-width="13" stroke-dasharray="102 137" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--sage-l)" stroke-width="13" stroke-dasharray="64 175" stroke-dashoffset="-102" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--stone-l)" stroke-width="13" stroke-dasharray="43 196" stroke-dashoffset="-166" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--stone-m)" stroke-width="13" stroke-dasharray="19 220" stroke-dashoffset="-209" transform="rotate(-90 50 50)"/>
+          <text x="50" y="46" text-anchor="middle" font-size="10" fill="var(--ink-m)" font-family="Noto Sans TC">總計</text>
+          <text x="50" y="60" text-anchor="middle" font-size="9" fill="var(--ink-t)" font-family="Noto Sans TC">¥68,400</text>
         </svg>
         <div style="flex:1;">
           <div class="leg-row"><div class="leg-dot" style="background:var(--sage-m)"></div><span class="leg-name">住宿</span><span class="leg-val">¥29,600</span><span class="leg-pct">43%</span></div>
@@ -846,495 +530,430 @@ html,body{height:100%;overflow:hidden;background:var(--cream);font-family:'Noto 
           <div class="leg-row"><div class="leg-dot" style="background:var(--line)"></div><span class="leg-name">其他</span><span class="leg-val">¥2,700</span><span class="leg-pct">4%</span></div>
         </div>
       </div>
-      <div style="display:flex;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-s);">
-        <div style="flex:1;text-align:center;"><div style="font-size:14px;color:var(--ink-m);">¥42,300</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">💳 刷卡</div></div>
+      <div style="display:flex;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-s);">
+        <div style="flex:1;text-align:center;"><div style="font-size:13px;color:var(--ink-m);">¥42,300</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">💳 刷卡</div></div>
         <div style="width:1px;background:var(--line-s);"></div>
-        <div style="flex:1;text-align:center;"><div style="font-size:14px;color:var(--ink-m);">¥26,100</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">💵 現金</div></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:13px;color:var(--ink-m);">¥26,100</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">💵 現金</div></div>
         <div style="width:1px;background:var(--line-s);"></div>
-        <div style="flex:1;text-align:center;"><div style="font-size:13px;color:var(--ink-m);">NT$147,380</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">折合台幣</div></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:13px;color:var(--ink-m);">NT$14.7萬</div><div style="font-size:11px;color:var(--ink-t);margin-top:2px;">折合台幣</div></div>
       </div>
     </div>
-
     <div class="sec"><span class="sec-lbl">每日花費</span></div>
     <div class="day-spend">
-      <div class="ds-row"><span class="ds-day">2/10 Day1</span><div class="ds-bar-w"><div class="ds-bar-f" style="width:100%"></div></div><span class="ds-amt">¥22,800</span></div>
-      <div class="ds-row"><span class="ds-day">2/11 Day2</span><div class="ds-bar-w"><div class="ds-bar-f" style="width:50%"></div></div><span class="ds-amt">¥11,400</span></div>
-      <div class="ds-row" style="background:var(--sage-p)"><span class="ds-day" style="color:var(--sage)">2/12 今天●</span><div class="ds-bar-w"><div class="ds-bar-f" style="width:18%"></div></div><span class="ds-amt" style="color:var(--sage)">¥4,200</span></div>
-      <div class="ds-row" style="opacity:.4"><span class="ds-day">2/13 Day4</span><div class="ds-bar-w"><div class="ds-bar-f" style="width:0%"></div></div><span class="ds-amt">—</span></div>
+      <div class="ds-row"><span class="ds-day">2/10 Day1</span><div class="ds-bw"><div class="ds-bf" style="width:100%"></div></div><span class="ds-amt">¥22,800</span></div>
+      <div class="ds-row"><span class="ds-day">2/11 Day2</span><div class="ds-bw"><div class="ds-bf" style="width:50%"></div></div><span class="ds-amt">¥11,400</span></div>
+      <div class="ds-row" style="background:var(--sage-p)"><span class="ds-day" style="color:var(--sage)">2/12 今天●</span><div class="ds-bw"><div class="ds-bf" style="width:18%"></div></div><span class="ds-amt" style="color:var(--sage)">¥4,200</span></div>
+      <div class="ds-row" style="opacity:.4"><span class="ds-day">2/13 Day4</span><div class="ds-bw"><div class="ds-bf" style="width:0"></div></div><span class="ds-amt">—</span></div>
     </div>
-
     <div class="settle-wrap">
       <div class="settle-lbl">成員結算</div>
       <div class="settle-card">
-        <div class="settle-row"><div class="ava" style="background:var(--sage-m)">我</div><span class="settle-name">小安（我）</span><span class="settle-amt" style="color:var(--ink-t)">已付 ¥38,200</span></div>
-        <div class="settle-row"><div class="ava" style="background:var(--stone-m)">J</div><span class="settle-name">Jason</span><span class="settle-amt recv">← 收 ¥6,400</span></div>
-        <div class="settle-row"><div class="ava" style="background:var(--stone-l);color:var(--stone)">M</div><span class="settle-name">Mei</span><span class="settle-amt owe">→ 付 ¥2,100</span></div>
+        <div class="settle-row"><div class="ava" style="background:var(--sage-m)">我</div><span class="sname">小安（我）</span><span class="samt" style="color:var(--ink-t)">已付 ¥38,200</span></div>
+        <div class="settle-row"><div class="ava" style="background:var(--stone-m)">J</div><span class="sname">Jason</span><span class="samt recv">← 收 ¥6,400</span></div>
+        <div class="settle-row"><div class="ava" style="background:var(--stone-l);color:var(--stone)">M</div><span class="sname">Mei</span><span class="samt owe">→ 付 ¥2,100</span></div>
       </div>
-      <div style="font-size:12px;color:var(--ink-t);padding:4px 2px;">匯率：1 JPY = 0.215 TWD（即時）</div>
+      <div style="font-size:11px;color:var(--ink-t);padding:4px 2px;">匯率：1 JPY ≈ 0.215 TWD（即時）</div>
     </div>
-
-    <!-- expense records -->
-    <div id="expense-list" style="padding:0 16px 20px;"></div>
+    <div class="sec"><span class="sec-lbl">新增記錄</span></div>
+    <div style="padding:0 16px 20px;" id="exp-list"></div>
   </div>
-
-  <button class="fab" onclick="openExpenseSheet()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  </button>
-
+  <button class="fab" onclick="openOv('ov-exp')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   <nav class="nav">
-    <div class="nav-tab" onclick="navBack('s-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
-    <div class="nav-tab" onclick="nav('s-detail')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
-    <div class="nav-tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
-    <div class="nav-tab" onclick="nav('s-check')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
+    <div class="nav-tab" onclick="goBack('s-home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
+    <div class="nav-tab" onclick="goTo('s-detail')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
+    <div class="nav-tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
+    <div class="nav-tab" onclick="goTo('s-check')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
   </nav>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     CHECKLIST
-═══════════════════════════════════════════════ -->
-<div class="screen off" id="s-check">
-  <div style="flex-shrink:0;padding-top:calc(var(--safe-top) + 10px);">
-    <div class="topbar" style="padding-top:4px;">
-      <div class="topbar-title">出發清單</div>
-      <span id="check-pct" style="font-size:13px;color:var(--sage);font-weight:400;">已完成 8/14</span>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="check-prog" style="width:57%"></div>
-    </div>
+<!-- ══════════════ CHECKLIST ══════════════ -->
+<div class="scr off" id="s-check">
+  <div class="topbar">
+    <div style="font-family:'Noto Serif TC',serif;font-size:19px;color:var(--ink);">出發清單</div>
+    <span id="chk-pct" style="font-size:13px;color:var(--sage);font-weight:400;"></span>
   </div>
-  <div class="scroll" style="padding-top:0;">
-    <div class="check-list" id="check-list-body">
-      <!-- categories rendered by JS -->
-    </div>
+  <div class="prog-wrap"><div class="prog-fill" id="chk-prog"></div></div>
+  <div class="scrl" style="padding-top:4px;">
+    <div class="check-list" id="chk-body"></div>
   </div>
   <nav class="nav">
-    <div class="nav-tab" onclick="navBack('s-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
-    <div class="nav-tab" onclick="nav('s-detail')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
-    <div class="nav-tab" onclick="nav('s-expense')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
-    <div class="nav-tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
+    <div class="nav-tab" onclick="goBack('s-home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>今日</div>
+    <div class="nav-tab" onclick="goTo('s-detail')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程</div>
+    <div class="nav-tab" onclick="goTo('s-exp')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>記帳</div>
+    <div class="nav-tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>清單</div>
   </nav>
 </div>
 
 </div><!-- /app -->
 
-<!-- ═══ OVERLAYS ═══ -->
+<!-- ══════════════ OVERLAYS ══════════════ -->
 
-<!-- Expense sheet -->
-<div class="overlay" id="exp-ov" onclick="closeOvOutside(event,'exp-ov')">
+<!-- Expense -->
+<div class="overlay" id="ov-exp" onclick="closeOvBg(event,'ov-exp')">
   <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">新增消費</div>
-    <div class="sheet-rule"></div>
-    <div class="f-row">
-      <div class="f-lbl">金額</div>
-      <input class="f-inp" type="number" inputmode="numeric" placeholder="0" id="exp-amount" style="font-size:24px;padding:8px 14px;">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">日期</div>
-      <input class="f-inp" type="date" id="exp-date">
-    </div>
-    <div class="f-row" style="padding-bottom:4px;">
-      <div class="f-lbl" style="margin-bottom:8px;">類別</div>
+    <div class="sh-handle"></div>
+    <div class="sh-title">新增消費</div><div class="sh-rule"></div>
+    <div class="frow"><div class="flbl">金額（日圓）</div><input class="finp" id="ea" type="number" inputmode="numeric" placeholder="0" style="font-size:22px;padding:8px 14px;"></div>
+    <div class="frow"><div class="flbl">日期</div><input class="finp" id="ed" type="date"></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">類別</div>
       <div class="pills" style="padding:0;">
-        <div class="pill sel" onclick="selPill(this,'cat')">🍽️ 餐飲</div>
-        <div class="pill" onclick="selPill(this,'cat')">🚃 交通</div>
-        <div class="pill" onclick="selPill(this,'cat')">🏨 住宿</div>
-        <div class="pill" onclick="selPill(this,'cat')">🛍️ 購物</div>
-        <div class="pill" onclick="selPill(this,'cat')">🎫 門票</div>
-        <div class="pill" onclick="selPill(this,'cat')">📦 其他</div>
-      </div>
-    </div>
-    <div class="f-row" style="padding-bottom:4px;">
-      <div class="f-lbl" style="margin-bottom:8px;">付款方式</div>
-      <div class="pay-tog">
-        <div class="pay-opt sel" onclick="selPay(this)">💳 刷卡</div>
-        <div class="pay-opt" onclick="selPay(this)">💵 現金</div>
-      </div>
-    </div>
-    <div class="f-row" style="padding-bottom:4px;">
-      <div class="f-lbl" style="margin-bottom:8px;">付款人</div>
+        <div class="pill sel" onclick="sPill(this,'cat')">🍽️ 餐飲</div>
+        <div class="pill" onclick="sPill(this,'cat')">🚃 交通</div>
+        <div class="pill" onclick="sPill(this,'cat')">🏨 住宿</div>
+        <div class="pill" onclick="sPill(this,'cat')">🛍️ 購物</div>
+        <div class="pill" onclick="sPill(this,'cat')">🎫 門票</div>
+        <div class="pill" onclick="sPill(this,'cat')">📦 其他</div>
+      </div></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">付款方式</div>
+      <div class="pay-tog"><div class="po sel" onclick="sPay(this)">💳 刷卡</div><div class="po" onclick="sPay(this)">💵 現金</div></div></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">付款人</div>
       <div class="pills" style="padding:0;">
-        <div class="pill sel" onclick="selPill(this,'payer')">我</div>
-        <div class="pill" onclick="selPill(this,'payer')">Jason</div>
-        <div class="pill" onclick="selPill(this,'payer')">Mei</div>
-      </div>
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">備註（選填）</div>
-      <input class="f-inp" type="text" placeholder="例：成吉思汗燒肉 4人" id="exp-note">
-    </div>
-    <button class="sheet-btn" onclick="submitExpense()">記帳</button>
+        <div class="pill sel" onclick="sPill(this,'payer')">我</div>
+        <div class="pill" onclick="sPill(this,'payer')">Jason</div>
+        <div class="pill" onclick="sPill(this,'payer')">Mei</div>
+      </div></div>
+    <div class="frow"><div class="flbl">備註（選填）</div><input class="finp" id="en" type="text" placeholder="例：成吉思汗燒肉 4人"></div>
+    <button class="sh-btn" onclick="submitExp()">記帳</button>
   </div>
 </div>
 
-<!-- Add/Edit event sheet -->
-<div class="overlay" id="event-ov" onclick="closeOvOutside(event,'event-ov')">
+<!-- Add event -->
+<div class="overlay" id="ov-add-event" onclick="closeOvBg(event,'ov-add-event')">
   <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="event-sheet-title">新增事件</div>
-    <div class="sheet-rule"></div>
-    <div class="f-row">
-      <div class="f-lbl" style="margin-bottom:8px;">類型</div>
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="ev-sh-title">新增事件</div><div class="sh-rule"></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">類型</div>
       <div class="pills" style="padding:0;">
-        <div class="pill sel" onclick="selPill(this,'etype')">✈️ 交通</div>
-        <div class="pill" onclick="selPill(this,'etype')">🏨 住宿</div>
-        <div class="pill" onclick="selPill(this,'etype')">📍 景點</div>
-        <div class="pill" onclick="selPill(this,'etype')">🍽️ 餐廳</div>
-        <div class="pill" onclick="selPill(this,'etype')">🛍️ 購物</div>
-      </div>
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">時間</div>
-      <input class="f-inp" type="time" id="event-time">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">名稱</div>
-      <input class="f-inp" type="text" placeholder="例：小樽運河散步" id="event-name">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">備註</div>
-      <input class="f-inp" type="text" placeholder="地址、訂位資訊等" id="event-note">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">費用</div>
-      <input class="f-inp" type="text" placeholder="例：¥3,200 / 人 或 免費" id="event-cost">
-    </div>
-    <button class="sheet-btn" onclick="submitEvent()">儲存</button>
+        <div class="pill sel" onclick="sPill(this,'etype')">✈️ 交通</div>
+        <div class="pill" onclick="sPill(this,'etype')">🏨 住宿</div>
+        <div class="pill" onclick="sPill(this,'etype')">📍 景點</div>
+        <div class="pill" onclick="sPill(this,'etype')">🍽️ 餐廳</div>
+        <div class="pill" onclick="sPill(this,'etype')">🛍️ 購物</div>
+      </div></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">日期</div>
+      <div class="pills" style="padding:0;" id="day-pills">
+        <div class="pill sel" onclick="sPill(this,'eday')">Day 1</div>
+        <div class="pill" onclick="sPill(this,'eday')">Day 2</div>
+        <div class="pill" onclick="sPill(this,'eday')">Day 3</div>
+      </div></div>
+    <div class="frow"><div class="flbl">時間</div><input class="finp" id="ev-time" type="time"></div>
+    <div class="frow"><div class="flbl">名稱</div><input class="finp" id="ev-name" type="text" placeholder="例：小樽運河散步"></div>
+    <div class="frow"><div class="flbl">備註</div><input class="finp" id="ev-note" type="text" placeholder="地址、訂位資訊等"></div>
+    <div class="frow"><div class="flbl">費用</div><input class="finp" id="ev-cost" type="text" placeholder="例：¥3,200 / 人 或 免費"></div>
+    <button class="sh-btn" onclick="submitEvent()">儲存事件</button>
   </div>
 </div>
 
-<!-- New trip sheet -->
-<div class="overlay" id="new-trip-ov" onclick="closeOvOutside(event,'new-trip-ov')">
+<!-- New trip -->
+<div class="overlay" id="ov-new-trip" onclick="closeOvBg(event,'ov-new-trip')">
   <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">建立新旅程</div>
-    <div class="sheet-rule"></div>
-    <div class="f-row">
-      <div class="f-lbl">旅程名稱</div>
-      <input class="f-inp" type="text" placeholder="例：東京春日散策" id="new-trip-name">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">目的地</div>
-      <input class="f-inp" type="text" placeholder="例：日本 東京">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">出發日期</div>
-      <input class="f-inp" type="date" id="new-trip-start">
-    </div>
-    <div class="f-row">
-      <div class="f-lbl">回程日期</div>
-      <input class="f-inp" type="date" id="new-trip-end">
-    </div>
-    <div class="f-row" style="padding-bottom:4px;">
-      <div class="f-lbl" style="margin-bottom:8px;">同行人數</div>
+    <div class="sh-handle"></div>
+    <div class="sh-title">建立新旅程</div><div class="sh-rule"></div>
+    <div class="frow"><div class="flbl">旅程名稱</div><input class="finp" id="nt-name" type="text" placeholder="例：東京春日散策"></div>
+    <div class="frow"><div class="flbl">目的地</div><input class="finp" id="nt-dest" type="text" placeholder="例：日本 東京"></div>
+    <div class="frow"><div class="flbl">出發日期</div><input class="finp" id="nt-start" type="date"></div>
+    <div class="frow"><div class="flbl">回程日期</div><input class="finp" id="nt-end" type="date"></div>
+    <div class="frow" style="padding-bottom:4px;"><div class="flbl" style="margin-bottom:8px;">同行人數</div>
       <div class="pills" style="padding:0;">
-        <div class="pill sel" onclick="selPill(this,'people')">1人</div>
-        <div class="pill" onclick="selPill(this,'people')">2人</div>
-        <div class="pill" onclick="selPill(this,'people')">3人</div>
-        <div class="pill" onclick="selPill(this,'people')">4人+</div>
-      </div>
-    </div>
-    <button class="sheet-btn" onclick="submitNewTrip()">建立旅程</button>
+        <div class="pill sel" onclick="sPill(this,'ppl')">1人</div>
+        <div class="pill" onclick="sPill(this,'ppl')">2人</div>
+        <div class="pill" onclick="sPill(this,'ppl')">3人</div>
+        <div class="pill" onclick="sPill(this,'ppl')">4人+</div>
+      </div></div>
+    <button class="sh-btn" onclick="submitNewTrip()">建立旅程</button>
   </div>
 </div>
 
 <script>
-/* ─── Screen nav ─────────────────────────── */
-let cur = 's-home';
-function nav(id){
+/* ── Nav ── */
+let cur='s-home';
+function goTo(id){
   document.getElementById(cur).classList.add('off');
   document.getElementById(cur).classList.remove('back');
   document.getElementById(id).classList.remove('off','back');
-  cur = id;
+  cur=id;
 }
-function navBack(id){
-  const c = document.getElementById(cur);
-  c.classList.add('off','back');
+function goBack(id){
+  document.getElementById(cur).classList.add('off','back');
   document.getElementById(id).classList.remove('off','back');
-  cur = id;
+  cur=id;
 }
 
-/* ─── Tabs ───────────────────────────────── */
-function switchTab(el, pid){
-  const scr = el.closest('.screen');
-  scr.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+/* ── Tabs ── */
+function swTab(el,pid){
+  el.closest('.scr').querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
-  scr.querySelectorAll('.tab-body').forEach(b=>b.classList.remove('on'));
+  el.closest('.scrl').querySelectorAll('.tb-body').forEach(b=>b.classList.remove('on'));
   document.getElementById(pid).classList.add('on');
 }
 
-/* ─── Overlays ───────────────────────────── */
-function openOverlay(id){ document.getElementById(id).classList.add('show'); }
-function closeOverlay(id){ document.getElementById(id).classList.remove('show'); }
-function closeOvOutside(e,id){ if(e.target===document.getElementById(id)) closeOverlay(id); }
-function closePickerOv(e){ if(e.target===document.getElementById('picker-ov')) closeOverlay('picker-ov'); }
+/* ── Overlays ── */
+function openOv(id){document.getElementById(id).classList.add('show');}
+function closeOv(id){document.getElementById(id).classList.remove('show');}
+function closeOvBg(e,id){if(e.target===document.getElementById(id))closeOv(id);}
 
-function openPicker(){ openOverlay('picker-ov'); }
-function openNewTrip(){ closeOverlay('picker-ov'); closeOverlay('new-trip-ov'); openOverlay('new-trip-ov'); }
-function openExpenseSheet(){
-  document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
-  openOverlay('exp-ov');
-}
-function openAddEvent(){
-  document.getElementById('event-sheet-title').textContent='新增事件';
-  document.getElementById('event-name').value='';
-  document.getElementById('event-time').value='';
-  document.getElementById('event-note').value='';
-  document.getElementById('event-cost').value='';
-  openOverlay('event-ov');
-}
-function openEditEvent(name,time,tag,cost){
-  document.getElementById('event-sheet-title').textContent='編輯事件';
-  document.getElementById('event-name').value=name;
-  document.getElementById('event-time').value=time;
-  document.getElementById('event-note').value='';
-  document.getElementById('event-cost').value=cost;
-  openOverlay('event-ov');
-}
-
-/* ─── More menu ──────────────────────────── */
-function toggleMore(){
-  document.getElementById('more-menu').classList.toggle('show');
-}
-function closeMore(){
-  document.getElementById('more-menu').classList.remove('show');
-}
-document.addEventListener('click',function(e){
-  const m=document.getElementById('more-menu');
-  const b=document.getElementById('det-more-btn');
-  if(m.classList.contains('show')&&!m.contains(e.target)&&!b.contains(e.target)) closeMore();
+/* ── More menu ── */
+function toggleMore(){document.getElementById('more-menu').classList.toggle('show');}
+function closeMore(){document.getElementById('more-menu').classList.remove('show');}
+document.addEventListener('click',e=>{
+  const m=document.getElementById('more-menu'),b=document.getElementById('more-btn');
+  if(m.classList.contains('show')&&!m.contains(e.target)&&!b.contains(e.target))closeMore();
 });
 
-/* ─── Pill / pay selectors ───────────────── */
-const pillGroups={};
-function selPill(el,group){
-  if(!group){group=el.closest('.pills')||el.parentElement;}
-  const grpEl = typeof group==='string' ? null : group;
-  if(grpEl){
-    grpEl.querySelectorAll('.pill').forEach(p=>p.classList.remove('sel'));
-  } else {
-    document.querySelectorAll('[onclick*="selPill(this,\''+group+'\'"]').forEach(p=>p.classList.remove('sel'));
-  }
+/* ── Pills / Pay ── */
+function sPill(el,grp){
+  document.querySelectorAll(`[onclick="sPill(this,'${grp}')"]`).forEach(p=>p.classList.remove('sel'));
   el.classList.add('sel');
 }
-function selPay(el){
-  el.parentElement.querySelectorAll('.pay-opt').forEach(p=>p.classList.remove('sel'));
-  el.classList.add('sel');
-}
+function sPay(el){el.parentElement.querySelectorAll('.po').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');}
 
-/* ─── Submit expense ────────────────────── */
-const expenses = [];
-function submitExpense(){
-  const amt = document.getElementById('exp-amount').value;
-  const date = document.getElementById('exp-date').value;
-  const note = document.getElementById('exp-note').value;
-  const cat = document.querySelector('[onclick*="selPill(this,\'cat\'"].sel')?.textContent||'餐飲';
-  const pay = document.querySelector('.pay-opt.sel')?.textContent||'刷卡';
-  const payer = document.querySelector('[onclick*="selPill(this,\'payer\'"].sel')?.textContent||'我';
-  if(!amt){showToast('請輸入金額');return;}
-  expenses.push({amt,date,note,cat,pay,payer});
-  renderExpenses();
-  closeOverlay('exp-ov');
-  document.getElementById('exp-amount').value='';
-  document.getElementById('exp-note').value='';
-  showToast('✅ 已記帳 ¥'+Number(amt).toLocaleString());
-}
-function renderExpenses(){
-  const el=document.getElementById('expense-list');
-  if(!expenses.length){el.innerHTML='';return;}
-  el.innerHTML='<div style="font-size:11px;letter-spacing:.18em;color:var(--ink-t);text-transform:uppercase;padding:16px 0 10px;">新增記錄</div>'+
-  expenses.slice().reverse().map(e=>`
-    <div style="background:var(--white);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-      <div style="flex:1">
-        <div style="font-size:14px;color:var(--ink);font-weight:400;">${e.cat} ${e.note||''}</div>
-        <div style="font-size:12px;color:var(--ink-t);margin-top:2px;">${e.date} · ${e.payer} · ${e.pay}</div>
-      </div>
-      <div style="font-size:16px;color:var(--ink-m);font-weight:400;">¥${Number(e.amt).toLocaleString()}</div>
+/* ── Trips ── */
+const trips=[
+  {name:'北海道 初雪之旅',date:'2025年2月10–17日',live:true},
+  {name:'京都 楓紅散策',date:'2024年11月20–25日',live:false},
+  {name:'釜山 海岸小旅行',date:'2024年8月3–6日',live:false},
+];
+function renderPicker(){
+  const el=document.getElementById('trip-list-picker');
+  el.innerHTML=trips.map((t,i)=>`
+    <div class="pi" onclick="selectTrip(${i})">
+      <div class="pi-dot${t.live?' live':''}"></div>
+      <div style="flex:1"><div class="pi-name">${t.name}</div><div class="pi-date">${t.date}${t.live?' · 進行中':' · 已完成'}</div></div>
+      ${t.live?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </div>
   `).join('');
 }
-
-/* ─── Submit event ───────────────────────── */
-function submitEvent(){
-  const name=document.getElementById('event-name').value;
-  const time=document.getElementById('event-time').value;
-  if(!name){showToast('請輸入事件名稱');return;}
-  closeOverlay('event-ov');
-  showToast('✅ 已儲存：'+name);
+function selectTrip(i){
+  document.getElementById('cur-trip-name').textContent=trips[i].name;
+  closeOv('ov-picker');
+  showToast('已切換到：'+trips[i].name);
 }
-
-/* ─── Submit new trip ────────────────────── */
 function submitNewTrip(){
-  const name=document.getElementById('new-trip-name').value||'新旅程';
-  closeOverlay('new-trip-ov');
+  const name=document.getElementById('nt-name').value.trim();
+  const dest=document.getElementById('nt-dest').value.trim();
+  const start=document.getElementById('nt-start').value;
+  const end=document.getElementById('nt-end').value;
+  if(!name){showToast('請輸入旅程名稱');return;}
+  const dateStr=start&&end?`${start} – ${end}`:start||'日期未設定';
+  trips.unshift({name,date:dest?`${dest} · ${dateStr}`:dateStr,live:false});
+  renderPicker();
+  closeOv('ov-new-trip');
+  document.getElementById('nt-name').value='';
+  document.getElementById('nt-dest').value='';
   showToast('✅ 旅程「'+name+'」已建立');
 }
 
-/* ─── Checklist ──────────────────────────── */
-const checkData = [
-  {cat:'證件類',items:[
-    {name:'護照',done:true,tag:''},
-    {name:'機票列印 / 電子票',done:true,tag:''},
-    {name:'日圓現金',done:false,tag:'重要'},
-    {name:'旅遊保險確認書',done:false,tag:'重要'},
-  ]},
-  {cat:'衣物類',items:[
-    {name:'羽絨外套',done:true,tag:''},
-    {name:'發熱衣 × 4',done:true,tag:''},
-    {name:'防滑雪靴',done:false,tag:'天氣建議'},
-    {name:'保暖手套＋帽子',done:false,tag:'天氣建議'},
-  ]},
-  {cat:'電子產品',items:[
-    {name:'手機充電器',done:true,tag:''},
-    {name:'行動電源',done:true,tag:''},
-    {name:'日本轉接頭',done:false,tag:''},
-  ]},
-  {cat:'藥品 / 其他',items:[
-    {name:'常備藥',done:true,tag:''},
-    {name:'暖暖包 × 10',done:false,tag:'天氣建議'},
-  ]},
-];
-
-function renderChecklist(){
-  const el=document.getElementById('check-list-body');
-  let total=0,done=0;
-  checkData.forEach(c=>c.items.forEach(i=>{total++;if(i.done)done++;}));
-  document.getElementById('check-pct').textContent='已完成 '+done+'/'+total;
-  document.getElementById('check-prog').style.width=Math.round(done/total*100)+'%';
-
-  el.innerHTML=checkData.map((cat,ci)=>`
-    <div class="check-cat">
-      <div class="check-cat-hd">${cat.cat}</div>
-      ${cat.items.map((item,ii)=>`
-        <div class="check-row" onclick="toggleCheck(${ci},${ii})">
-          <div class="chk${item.done?' done':''}">
-            ${item.done?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':''}
-          </div>
-          <span class="chk-name${item.done?' done':''}">${item.name}</span>
-          ${item.tag?`<span class="chk-tag">${item.tag}</span>`:''}
-          <span class="chk-del" onclick="event.stopPropagation();deleteCheck(${ci},${ii})">×</span>
+/* ── Timeline ── */
+const tlData={
+  d1:[
+    {time:'07:30',tag:'✈️ 交通',name:'CI 110 · 桃園 → 新千歲',sub:'07:30 起飛 · 11:50 抵達',cost:'¥18,500（三人）',done:true},
+    {time:'14:00',tag:'🏨 住宿',name:'定山渓温泉 章魚料理旅館',sub:'和式溫泉房 · 含晚餐 · 2晚',cost:'¥14,800 / 晚',done:true},
+    {time:'19:00',tag:'🍽️ 晚餐',name:'旅館晚餐 — 螃蟹懷石料理',sub:'含在住宿費用中',cost:'已含',done:true},
+  ],
+  d2:[
+    {time:'09:30',tag:'📍 景點',name:'小樽運河散步',sub:'積雪30cm · -4°C · 帶相機！',cost:'免費',done:true},
+    {time:'12:30',tag:'🍜 午餐',name:'政寿司 本店 — 海鮮丼',sub:'強烈推薦！提前訂位',cost:'¥3,200 / 人',done:true},
+    {time:'15:00',tag:'📍 景點',name:'北一硝子 三號館',sub:'小樽玻璃工藝品',cost:'',done:true},
+  ],
+  d3:[
+    {time:'11:50',tag:'🚃 交通',name:'新千歲 → JR → 札幌',sub:'約36分鐘 · 持Suica直接搭',cost:'¥1,150 / 人',done:true,now:true},
+    {time:'14:00',tag:'🏨 住宿',name:'Cross Hotel 札幌 入住',sub:'訂位代號 XH2041',cost:'¥3,700 / 晚',done:false},
+    {time:'17:30',tag:'📍 景點',name:'大通公園 雪祭會場',sub:'冰雕展示 · 帶暖暖包！',cost:'免費',done:false},
+    {time:'19:30',tag:'🍽️ 晚餐',name:'だるま 狸小路 — 成吉思汗燒肉',sub:'已訂位 · 4位',cost:'¥2,800 / 人',done:false},
+  ]
+};
+function renderTL(){
+  ['d1','d2','d3'].forEach(d=>{
+    const el=document.getElementById('tl-'+d);
+    const sorted=[...tlData[d]].sort((a,b)=>a.time.localeCompare(b.time));
+    el.innerHTML=sorted.map((ev,i)=>`
+      <div class="tl-row">
+        <div class="tl-spine">
+          <div class="tl-time">${ev.time}</div>
+          <div class="tl-dot${ev.done?' on':''}"></div>
+          ${i<sorted.length-1?'<div class="tl-stem"></div>':''}
         </div>
-      `).join('')}
-      <div class="add-item-row">
-        <input class="add-item-input" type="text" placeholder="新增項目…" id="add-inp-${ci}" onkeydown="if(event.key==='Enter')addCheckItem(${ci})">
-        <div class="add-item-btn" onclick="addCheckItem(${ci})">加入</div>
+        <div class="tl-card${ev.now?' now':''}">
+          <div class="tl-tag">${ev.tag}${ev.now?' · 進行中':''}</div>
+          <div class="tl-ttl">${ev.name}</div>
+          ${ev.sub?`<div class="tl-sub">${ev.sub}</div>`:''}
+          ${ev.cost?`<div class="tl-cost">${ev.cost}</div>`:''}
+          <div class="tl-edit" onclick="openEditEv(${JSON.stringify(d)},${i})">編輯</div>
+        </div>
       </div>
+    `).join('');
+  });
+}
+function openEditEv(day,idx){
+  const ev=tlData[day][idx];
+  document.getElementById('ev-sh-title').textContent='編輯事件';
+  document.getElementById('ev-time').value=ev.time;
+  document.getElementById('ev-name').value=ev.name;
+  document.getElementById('ev-note').value=ev.sub||'';
+  document.getElementById('ev-cost').value=ev.cost||'';
+  openOv('ov-add-event');
+}
+function submitEvent(){
+  const name=document.getElementById('ev-name').value.trim();
+  const time=document.getElementById('ev-time').value;
+  const note=document.getElementById('ev-note').value.trim();
+  const cost=document.getElementById('ev-cost').value.trim();
+  if(!name){showToast('請輸入事件名稱');return;}
+  const dayPill=document.querySelector("[onclick=\"sPill(this,'eday')\"].sel");
+  const day=dayPill?'d'+(dayPill.textContent.replace('Day ','')):'d3';
+  const tag=document.querySelector("[onclick=\"sPill(this,'etype')\"].sel")?.textContent||'📍 景點';
+  tlData[day].push({time:time||'00:00',tag,name,sub:note,cost,done:false});
+  renderTL();
+  closeOv('ov-add-event');
+  document.getElementById('ev-name').value='';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-note').value='';
+  document.getElementById('ev-cost').value='';
+  showToast('✅ 已加入：'+name);
+}
+
+/* ── Expenses ── */
+const expenses=[];
+function submitExp(){
+  const amt=document.getElementById('ea').value;
+  if(!amt||Number(amt)<=0){showToast('請輸入金額');return;}
+  const date=document.getElementById('ed').value;
+  const note=document.getElementById('en').value;
+  const cat=document.querySelector("[onclick=\"sPill(this,'cat')\"].sel")?.textContent||'餐飲';
+  const pay=document.querySelector('.po.sel')?.textContent||'刷卡';
+  const payer=document.querySelector("[onclick=\"sPill(this,'payer')\"].sel")?.textContent||'我';
+  expenses.unshift({amt:Number(amt),date,note,cat,pay,payer});
+  renderExp();
+  closeOv('ov-exp');
+  document.getElementById('ea').value='';
+  document.getElementById('en').value='';
+  showToast('✅ 已記帳 ¥'+Number(amt).toLocaleString());
+}
+function renderExp(){
+  const el=document.getElementById('exp-list');
+  if(!expenses.length){el.innerHTML='<div style="font-size:13px;color:var(--ink-t);padding:10px 0;">尚無新增記錄</div>';return;}
+  el.innerHTML=expenses.map(e=>`
+    <div class="exp-rec">
+      <div class="exp-rec-main">
+        <div class="exp-rec-name">${e.cat}${e.note?' · '+e.note:''}</div>
+        <div class="exp-rec-sub">${e.date||'今天'} · ${e.payer} · ${e.pay}</div>
+      </div>
+      <div class="exp-rec-amt">¥${e.amt.toLocaleString()}</div>
     </div>
   `).join('');
 }
 
-function toggleCheck(ci,ii){
-  checkData[ci].items[ii].done=!checkData[ci].items[ii].done;
-  renderChecklist();
+/* ── Checklist ── */
+const chkData=[
+  {cat:'證件類',items:[{n:'護照',d:true,t:''},{n:'機票列印 / 電子票',d:true,t:''},{n:'日圓現金',d:false,t:'重要'},{n:'旅遊保險確認書',d:false,t:'重要'}]},
+  {cat:'衣物類',items:[{n:'羽絨外套',d:true,t:''},{n:'發熱衣 × 4',d:true,t:''},{n:'防滑雪靴',d:false,t:'天氣建議'},{n:'保暖手套＋帽子',d:false,t:'天氣建議'}]},
+  {cat:'電子產品',items:[{n:'手機充電器',d:true,t:''},{n:'行動電源',d:true,t:''},{n:'日本轉接頭',d:false,t:''}]},
+  {cat:'藥品 / 其他',items:[{n:'常備藥',d:true,t:''},{n:'暖暖包 × 10',d:false,t:'天氣建議'}]},
+];
+function renderChk(){
+  let total=0,done=0;
+  chkData.forEach(c=>c.items.forEach(i=>{total++;if(i.d)done++;}));
+  document.getElementById('chk-pct').textContent=`已完成 ${done}/${total}`;
+  document.getElementById('chk-prog').style.width=Math.round(done/total*100)+'%';
+  document.getElementById('chk-body').innerHTML=chkData.map((cat,ci)=>`
+    <div>
+      <div class="chk-cat-hd">${cat.cat}</div>
+      ${cat.items.map((item,ii)=>`
+        <div class="chk-row" onclick="toggleChk(${ci},${ii})">
+          <div class="chk${item.d?' done':''}">
+            ${item.d?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':''}
+          </div>
+          <span class="chk-name${item.d?' done':''}">${item.n}</span>
+          ${item.t?`<span class="chk-tag">${item.t}</span>`:''}
+          <span class="chk-del" onclick="event.stopPropagation();delChk(${ci},${ii})">×</span>
+        </div>
+      `).join('')}
+      <div class="add-row">
+        <input class="add-inp" type="text" placeholder="新增項目…" id="ai-${ci}" onkeydown="if(event.key==='Enter')addChk(${ci})">
+        <div class="add-btn" onclick="addChk(${ci})">加入</div>
+      </div>
+    </div>
+  `).join('');
 }
-function deleteCheck(ci,ii){
-  checkData[ci].items.splice(ii,1);
-  renderChecklist();
-  showToast('已刪除項目');
-}
-function addCheckItem(ci){
-  const inp=document.getElementById('add-inp-'+ci);
+function toggleChk(ci,ii){chkData[ci].items[ii].d=!chkData[ci].items[ii].d;renderChk();}
+function delChk(ci,ii){chkData[ci].items.splice(ii,1);renderChk();showToast('已刪除項目');}
+function addChk(ci){
+  const inp=document.getElementById('ai-'+ci);
   const val=inp.value.trim();
   if(!val)return;
-  checkData[ci].items.push({name:val,done:false,tag:''});
-  renderChecklist();
+  chkData[ci].items.push({n:val,d:false,t:''});
+  renderChk();
   showToast('✅ 已加入：'+val);
 }
 
-/* ─── Drag & drop ────────────────────────── */
-let dragSrc=null;
-function dragStart(e){
-  dragSrc=e.currentTarget;
-  e.currentTarget.querySelector('.tl-card').classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-}
-function dragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect='move';
-}
-function dropItem(e){
-  e.preventDefault();
-  const target=e.currentTarget;
-  if(dragSrc&&dragSrc!==target){
-    const parent=dragSrc.parentNode;
-    const items=[...parent.querySelectorAll('.tl-row')];
-    const srcIdx=items.indexOf(dragSrc);
-    const tgtIdx=items.indexOf(target);
-    if(tgtIdx>srcIdx) parent.insertBefore(dragSrc,target.nextSibling);
-    else parent.insertBefore(dragSrc,target);
-    showToast('已調整順序');
-  }
-}
-function dragEnd(e){
-  e.currentTarget.querySelector('.tl-card').classList.remove('dragging');
-  dragSrc=null;
-}
-
-/* ─── Toast ──────────────────────────────── */
-let toastTimer;
+/* ── Toast ── */
+let tTimer;
 function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-/* ─── PWA Icon via canvas ────────────────── */
-function makePWAIcon(){
-  const c=document.createElement('canvas');
-  c.width=180;c.height=180;
+/* ── PWA icon via canvas (centred) ── */
+function drawIcon(){
+  const c=document.getElementById('sp-canvas');
   const ctx=c.getContext('2d');
-  // bg
-  const r=38;
-  ctx.beginPath();
-  ctx.moveTo(r,0);ctx.lineTo(180-r,0);ctx.quadraticCurveTo(180,0,180,r);
-  ctx.lineTo(180,180-r);ctx.quadraticCurveTo(180,180,180-r,180);
-  ctx.lineTo(r,180);ctx.quadraticCurveTo(0,180,0,180-r);
-  ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);
+  c.width=120;c.height=120;
+  // bg circle
+  ctx.beginPath();ctx.arc(60,60,60,0,Math.PI*2);
   ctx.fillStyle='#f0ece5';ctx.fill();
   // sun
-  ctx.strokeStyle='#7a9e84';ctx.lineWidth=2.2;ctx.lineCap='round';
-  ctx.beginPath();ctx.arc(46,46,12,0,Math.PI*2);ctx.stroke();
-  [[46,27,46,20],[46,65,46,72],[64,46,71,46],[28,46,21,46],
-   [58,34,63,29],[34,58,29,63],[58,58,63,63],[34,34,29,29]].forEach(([x1,y1,x2,y2])=>{
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  });
+  ctx.strokeStyle='#7a9e84';ctx.lineWidth=2;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(36,36,10,0,Math.PI*2);ctx.stroke();
+  [[36,19,36,13],[36,53,36,59],[53,36,59,36],[19,36,13,36],
+   [47,25,51,21],[25,47,21,51],[47,47,51,51],[25,25,21,21]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
   // birds
-  ctx.strokeStyle='#9e9a8c';ctx.lineWidth=1.6;
-  [[85,38,95,38],[100,32,110,32]].forEach(([x1,mid,x2])=>{
-    ctx.beginPath();ctx.moveTo(x1,mid+4);ctx.quadraticCurveTo((x1+x2)/2,mid-2,x2,mid+4);ctx.stroke();
-  });
+  ctx.strokeStyle='#9e9a8c';ctx.lineWidth=1.4;
+  [[72,28,80,28],[84,22,92,22]].forEach(([x1,mid,x2])=>{
+    ctx.beginPath();ctx.moveTo(x1,mid+3);ctx.quadraticCurveTo((x1+x2)/2,mid-2,x2,mid+3);ctx.stroke();});
   // mountain
-  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=2.4;ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(12,118);ctx.lineTo(58,44);ctx.lineTo(106,108);ctx.lineTo(126,76);ctx.lineTo(142,118);ctx.stroke();
-  // snow
+  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=2.2;ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(8,98);ctx.lineTo(46,34);ctx.lineTo(84,86);ctx.lineTo(98,62);ctx.lineTo(112,98);ctx.stroke();
+  // snow cap
   ctx.fillStyle='#e8f2e8';
-  ctx.beginPath();ctx.moveTo(48,60);ctx.lineTo(58,44);ctx.lineTo(68,60);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(38,48);ctx.lineTo(46,34);ctx.lineTo(54,48);ctx.closePath();ctx.fill();ctx.stroke();
   // horizon
-  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=1.6;ctx.globalAlpha=.45;
-  ctx.beginPath();ctx.moveTo(10,118);ctx.lineTo(148,118);ctx.stroke();ctx.globalAlpha=1;
+  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=1.4;ctx.globalAlpha=.4;
+  ctx.beginPath();ctx.moveTo(8,98);ctx.lineTo(112,98);ctx.stroke();ctx.globalAlpha=1;
   // trees
-  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=1.8;ctx.globalAlpha=.65;
-  ctx.beginPath();ctx.moveTo(116,118);ctx.lineTo(116,100);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(107,110);ctx.lineTo(116,96);ctx.lineTo(125,110);ctx.stroke();
-  ctx.globalAlpha=.45;
-  ctx.beginPath();ctx.moveTo(130,118);ctx.lineTo(130,106);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(123,113);ctx.lineTo(130,102);ctx.lineTo(137,113);ctx.stroke();
+  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=1.6;ctx.globalAlpha=.6;
+  ctx.beginPath();ctx.moveTo(92,98);ctx.lineTo(92,82);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(84,90);ctx.lineTo(92,78);ctx.lineTo(100,90);ctx.stroke();
+  ctx.globalAlpha=.4;
+  ctx.beginPath();ctx.moveTo(104,98);ctx.lineTo(104,88);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(97,93);ctx.lineTo(104,84);ctx.lineTo(111,93);ctx.stroke();
   ctx.globalAlpha=1;
-  document.getElementById('pwa-icon').href=c.toDataURL('image/png');
+  // export to apple-touch-icon
+  const ic=document.createElement('canvas');ic.width=180;ic.height=180;
+  const ix=ic.getContext('2d');
+  // rounded rect bg
+  ix.beginPath();
+  const r=38;
+  ix.moveTo(r,0);ix.lineTo(180-r,0);ix.quadraticCurveTo(180,0,180,r);
+  ix.lineTo(180,180-r);ix.quadraticCurveTo(180,180,180-r,180);
+  ix.lineTo(r,180);ix.quadraticCurveTo(0,180,0,180-r);
+  ix.lineTo(0,r);ix.quadraticCurveTo(0,0,r,0);
+  ix.fillStyle='#f0ece5';ix.fill();
+  // draw original canvas centred
+  ix.drawImage(c,30,30,120,120);
+  document.getElementById('pwa-icon').href=ic.toDataURL('image/png');
 }
 
-/* ─── Init ───────────────────────────────── */
+/* ── Init ── */
 window.addEventListener('DOMContentLoaded',()=>{
-  makePWAIcon();
-  renderChecklist();
-  renderExpenses();
-  // Set today's date in expense form
-  document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
-  // Animate spend bar
-  setTimeout(()=>{document.getElementById('spend-fill').style.width='42%';},400);
-  // Hide splash
+  drawIcon();
+  renderPicker();
+  renderTL();
+  renderChk();
+  renderExp();
+  document.getElementById('ed').value=new Date().toISOString().split('T')[0];
+  setTimeout(()=>document.getElementById('sf').style.width='42%',600);
   setTimeout(()=>document.getElementById('splash').classList.add('hide'),1800);
 });
 </script>
