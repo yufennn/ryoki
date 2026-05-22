@@ -310,10 +310,12 @@ svg.ico{display:inline-block;vertical-align:middle;}
       </div>
       <div class="spend-trk"><div class="spend-fill" id="sf"></div></div>
     </div>
-    <div class="sec"><span class="sec-lbl">今日航班</span></div>
-    <div id="home-flight-wrap"></div>
-    <div class="sec"><span class="sec-lbl">今日行程</span><span class="sec-act" onclick="goTo('s-detail')">全部 →</span></div>
-    <div class="tl-wrap" id="home-tl"></div>
+    <div class="sec"><span class="sec-lbl">已完成</span><span class="sec-act" onclick="goTo('s-detail')">全部 →</span></div>
+    <div class="tl-wrap" id="home-tl-done"></div>
+    <div class="sec"><span class="sec-lbl">今日行程</span></div>
+    <div class="tl-wrap" id="home-tl-today"></div>
+    <div class="sec"><span class="sec-lbl">未來行程</span></div>
+    <div class="tl-wrap" id="home-tl-future"></div>
   </div>
   <nav class="nav">
     <div class="nav-tab on">
@@ -357,7 +359,7 @@ svg.ico{display:inline-block;vertical-align:middle;}
       <div class="mi" onclick="closeMore();openAddEventSheet()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增事件
       </div>
-      <div class="mi" onclick="closeMore();showToast('分享連結已複製 ✅')">
+      <div class="mi" onclick="closeMore();showToast('分享連結已複製')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享旅程
       </div>
       <div class="mi red" onclick="closeMore();confirmDeleteTrip()">
@@ -381,9 +383,9 @@ svg.ico{display:inline-block;vertical-align:middle;}
     <div class="tb-body" id="tp-wx">
       <div class="wx-full">
         <div class="wx-sel-wrap">
-          <div style="font-size:10px;letter-spacing:.14em;color:var(--ink-t);margin-bottom:8px;">查詢城市天氣</div>
+          <div style="font-size:10px;letter-spacing:.14em;color:var(--ink-t);margin-bottom:8px;">選擇行程城市</div>
           <select class="wx-city-sel" id="wx-city-sel" onchange="updateWeatherTab()">
-            <option value="">— 選擇行程地點 —</option>
+            <option value="">— 新增事件地點後顯示 —</option>
           </select>
         </div>
         <div id="wx-today-card" class="wx-card" style="display:none;">
@@ -397,6 +399,10 @@ svg.ico{display:inline-block;vertical-align:middle;}
               <div class="wx-det-item">濕度<span class="wx-det-val" id="wx-humid">—</span></div>
             </div>
           </div>
+        </div>
+        <div id="wx-week-card" class="wx-card" style="display:none;">
+          <div class="wx-card-hd">未來一週預報</div>
+          <div id="wx-week-rows"></div>
         </div>
         <div class="outfit-card" id="wx-outfit-card" style="display:none;">
           <div class="outfit-hd">穿搭建議</div>
@@ -729,12 +735,12 @@ function submitNewTrip(){
     }
   }
   const newTrip={name,city,start,end,people:ppl,days,expenses:[],members:['我'],depFlight,retFlight};
-  S.trips.unshift(newTrip);S.curIdx=0;save();renderAll();closeOv('ov-new-trip');
+  S.trips.unshift(newTrip);S.curIdx=0;save();renderAll();updateWxCitySel();closeOv('ov-new-trip');
   // clear
   ['nt-name','nt-city','nt-start','nt-end','nt-dep-flight','nt-dep-date','nt-ret-flight','nt-ret-date'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('dep-result').classList.remove('show');
   document.getElementById('ret-result').classList.remove('show');
-  showToast('✅ 旅程「'+name+'」已建立');
+  showToast('旅程「'+name+'」已建立');
 }
 
 /* ══ DELETE TRIP ══ */
@@ -788,13 +794,13 @@ function submitEvent(){
   if(editEv.day>=0){
     const ev=t.days[editEv.day].events[editEv.idx];
     ev.time=time;ev.name=name;ev.loc=loc;ev.note=note;ev.tag=tag;
-    showToast('✅ 已更新：'+name);
+    showToast('已更新：'+name);
   } else {
     const dayPill=document.querySelector("[onclick*=\"sPill(this,'eday')\"].sel");
     const di=dayPill?t.days.findIndex(d=>d.label.startsWith(dayPill.textContent)):0;
     const tidx=Math.max(0,Math.min(di,t.days.length-1));
     t.days[tidx].events.push({time,tag,name,loc,note,done:false});
-    showToast('✅ 已加入：'+name);
+    showToast('已加入：'+name);
   }
   save();renderDetail();renderMap();updateWxCitySel();closeOv('ov-event');
 }
@@ -814,7 +820,7 @@ function addMember(){
   if(t.members.includes(n)){showToast('成員已存在');return;}
   t.members.push(n);save();
   document.getElementById('new-member-name').value='';
-  renderMemberDisplay();closeOv('ov-add-member');showToast('✅ 已加入：'+n);
+  renderMemberDisplay();closeOv('ov-add-member');showToast('已加入：'+n);
 }
 function renderMemberDisplay(){
   const t=trip();if(!t)return;
@@ -849,7 +855,7 @@ function submitExp(){
   t.expenses.unshift({amt,cur,date,note,cat,pay,payer,splitTo,perPerson});
   save();renderExpenses();closeOv('ov-exp');
   document.getElementById('ea').value='';document.getElementById('en').value='';
-  showToast('✅ '+cur+' '+amt.toLocaleString()+' 已記帳');
+  showToast(cur+' '+amt.toLocaleString()+' 已記帳');
 }
 
 function renderExpenses(){
@@ -910,60 +916,243 @@ function renderSettle(){
 }
 
 /* ══ WEATHER ══ */
-// Weather data keyed by city (demo data; real app uses OpenWeatherMap API)
+// Weather data - demo (replace with real API calls using your OpenWeatherMap key)
+// Key will be inserted here: const OWM_KEY = 'YOUR_KEY';
+const OWM_KEY = 'b2ef9243af5060d4e8c7dea3bc27cc31';
+
 const WX_DATA={
-  'tokyo':{name:'東京',temp:'18°',low:'12°C',desc:'晴時多雲',rain:'10%',feels:'16°C',humid:'55%',outfit:'輕薄外套或長袖，早晚稍涼',warn:''},
-  'sapporo':{name:'札幌',temp:'-3°',low:'-9°C',desc:'晴時多雲',rain:'20%',feels:'-8°C',humid:'60%',outfit:'羽絨外套＋發熱衣＋防滑雪靴，帽子手套必備',warn:'明日降雪 65%，注意路面結冰'},
-  'seoul':{name:'首爾',temp:'8°',low:'2°C',desc:'晴',rain:'5%',feels:'5°C',humid:'40%',outfit:'保暖中層外套，厚襪子，舒適步行鞋',warn:''},
-  'osaka':{name:'大阪',temp:'15°',low:'9°C',desc:'多雲',rain:'30%',feels:'13°C',humid:'65%',outfit:'薄外套，可備折疊傘',warn:'傍晚有雨，建議帶傘'},
-  'bangkok':{name:'曼谷',temp:'34°',low:'26°C',desc:'晴，高溫',rain:'15%',feels:'38°C',humid:'70%',outfit:'涼爽透氣短袖，防曬乳必備，室內冷氣強請備外套',warn:'紫外線指數極高'},
-  'kuala lumpur':{name:'吉隆坡',temp:'32°',low:'24°C',desc:'多雲時晴',rain:'40%',feels:'36°C',humid:'80%',outfit:'輕薄透氣衣物，備雨傘，室內冷氣強請備薄外套',warn:'午後有雷陣雨'},
-  'paris':{name:'巴黎',temp:'12°',low:'6°C',desc:'陰',rain:'45%',feels:'9°C',humid:'72%',outfit:'中厚外套，多層次穿搭，防水外層',warn:'今明兩天有雨'},
-  'new york':{name:'紐約',temp:'10°',low:'4°C',desc:'晴',rain:'10%',feels:'7°C',humid:'45%',outfit:'保暖外套，圍巾，舒適步行鞋',warn:''},
+  'tokyo':    {name:'東京',    temp:'18',low:'12',unit:'°C',desc:'晴時多雲',rain:'10%',feels:'16°C',humid:'55%',outfit:'輕薄外套或長袖，早晚稍涼',warn:'',week:[{d:'今天',t:'18/12',w:'晴'},{d:'明天',t:'17/11',w:'多雲'},{d:'週三',t:'15/10',w:'小雨',rain:true},{d:'週四',t:'16/11',w:'多雲'},{d:'週五',t:'19/13',w:'晴'},{d:'週六',t:'20/14',w:'晴'},{d:'週日',t:'18/12',w:'多雲'}]},
+  'sapporo':  {name:'札幌',    temp:'-3',low:'-9',unit:'°C',desc:'晴時多雲',rain:'20%',feels:'-8°C',humid:'60%',outfit:'羽絨外套＋發熱衣＋防滑雪靴，帽子手套必備',warn:'明日降雪 65%，注意路面結冰',week:[{d:'今天',t:'-3/-9',w:'晴時多雲'},{d:'明天',t:'-5/-12',w:'降雪',rain:true},{d:'週三',t:'-6/-13',w:'大雪',rain:true},{d:'週四',t:'-4/-10',w:'多雲'},{d:'週五',t:'-2/-8',w:'晴'},{d:'週六',t:'-1/-7',w:'晴'},{d:'週日',t:'-3/-9',w:'多雲'}]},
+  'hokkaido': {name:'北海道',  temp:'-2',low:'-8',unit:'°C',desc:'晴',rain:'15%',feels:'-7°C',humid:'58%',outfit:'厚羽絨外套，多層次穿搭，防滑鞋',warn:'',week:[{d:'今天',t:'-2/-8',w:'晴'},{d:'明天',t:'-4/-10',w:'多雲'},{d:'週三',t:'-5/-11',w:'降雪',rain:true},{d:'週四',t:'-3/-9',w:'晴'},{d:'週五',t:'-1/-7',w:'晴'},{d:'週六',t:'-2/-8',w:'晴'},{d:'週日',t:'-3/-9',w:'多雲'}]},
+  'seoul':    {name:'首爾',    temp:'8', low:'2', unit:'°C',desc:'晴',rain:'5%',feels:'5°C',humid:'40%',outfit:'保暖中層外套，厚襪子，舒適步行鞋',warn:'',week:[{d:'今天',t:'8/2',w:'晴'},{d:'明天',t:'10/3',w:'晴'},{d:'週三',t:'7/1',w:'多雲'},{d:'週四',t:'6/0',w:'小雨',rain:true},{d:'週五',t:'9/3',w:'晴'},{d:'週六',t:'11/4',w:'晴'},{d:'週日',t:'10/3',w:'多雲'}]},
+  'busan':    {name:'釜山',    temp:'12',low:'6', unit:'°C',desc:'晴',rain:'8%',feels:'10°C',humid:'52%',outfit:'薄外套，舒適步行鞋',warn:'',week:[{d:'今天',t:'12/6',w:'晴'},{d:'明天',t:'13/7',w:'晴'},{d:'週三',t:'11/5',w:'多雲'},{d:'週四',t:'10/4',w:'小雨',rain:true},{d:'週五',t:'12/6',w:'晴'},{d:'週六',t:'14/8',w:'晴'},{d:'週日',t:'13/7',w:'晴'}]},
+  'osaka':    {name:'大阪',    temp:'15',low:'9', unit:'°C',desc:'多雲',rain:'30%',feels:'13°C',humid:'65%',outfit:'薄外套，可備折疊傘',warn:'傍晚有雨，建議帶傘',week:[{d:'今天',t:'15/9',w:'多雲',rain:true},{d:'明天',t:'14/8',w:'小雨',rain:true},{d:'週三',t:'16/10',w:'晴'},{d:'週四',t:'17/11',w:'晴'},{d:'週五',t:'15/9',w:'多雲'},{d:'週六',t:'16/10',w:'晴'},{d:'週日',t:'14/8',w:'多雲'}]},
+  'kyoto':    {name:'京都',    temp:'14',low:'8', unit:'°C',desc:'晴',rain:'10%',feels:'12°C',humid:'60%',outfit:'薄外套，舒適步行鞋，建議多備一件',warn:'',week:[{d:'今天',t:'14/8',w:'晴'},{d:'明天',t:'15/9',w:'晴'},{d:'週三',t:'13/7',w:'多雲'},{d:'週四',t:'12/6',w:'小雨',rain:true},{d:'週五',t:'14/8',w:'晴'},{d:'週六',t:'16/10',w:'晴'},{d:'週日',t:'15/9',w:'多雲'}]},
+  'bangkok':  {name:'曼谷',    temp:'34',low:'26',unit:'°C',desc:'晴，高溫',rain:'15%',feels:'38°C',humid:'70%',outfit:'涼爽透氣短袖，防曬乳必備，室內冷氣強請備外套',warn:'紫外線指數極高',week:[{d:'今天',t:'34/26',w:'晴'},{d:'明天',t:'33/25',w:'晴'},{d:'週三',t:'32/25',w:'多雲'},{d:'週四',t:'31/24',w:'午後雷陣雨',rain:true},{d:'週五',t:'33/25',w:'晴'},{d:'週六',t:'34/26',w:'晴'},{d:'週日',t:'33/25',w:'多雲'}]},
+  'kuala lumpur':{name:'吉隆坡',temp:'32',low:'24',unit:'°C',desc:'多雲時晴',rain:'40%',feels:'36°C',humid:'80%',outfit:'輕薄透氣衣物，備雨傘，室內冷氣強請備薄外套',warn:'午後有雷陣雨',week:[{d:'今天',t:'32/24',w:'多雲',rain:true},{d:'明天',t:'31/23',w:'午後雷陣雨',rain:true},{d:'週三',t:'32/24',w:'多雲'},{d:'週四',t:'33/25',w:'晴'},{d:'週五',t:'32/24',w:'多雲'},{d:'週六',t:'31/23',w:'雷陣雨',rain:true},{d:'週日',t:'32/24',w:'多雲'}]},
+  'paris':    {name:'巴黎',    temp:'12',low:'6', unit:'°C',desc:'陰',rain:'45%',feels:'9°C',humid:'72%',outfit:'中厚外套，多層次穿搭，防水外層',warn:'今明兩天有雨',week:[{d:'今天',t:'12/6',w:'陰',rain:true},{d:'明天',t:'10/5',w:'小雨',rain:true},{d:'週三',t:'11/6',w:'多雲'},{d:'週四',t:'13/7',w:'晴'},{d:'週五',t:'14/8',w:'晴'},{d:'週六',t:'12/6',w:'多雲'},{d:'週日',t:'11/5',w:'小雨',rain:true}]},
+  'taipei':   {name:'台北',    temp:'22',low:'18',unit:'°C',desc:'多雲',rain:'25%',feels:'22°C',humid:'75%',outfit:'薄外套或長袖，備雨傘',warn:'',week:[{d:'今天',t:'22/18',w:'多雲'},{d:'明天',t:'21/17',w:'小雨',rain:true},{d:'週三',t:'23/19',w:'晴'},{d:'週四',t:'24/20',w:'晴'},{d:'週五',t:'22/18',w:'多雲'},{d:'週六',t:'21/17',w:'小雨',rain:true},{d:'週日',t:'23/19',w:'晴'}]},
+  'kaohsiung':{name:'高雄',    temp:'28',low:'22',unit:'°C',desc:'晴',rain:'10%',feels:'30°C',humid:'68%',outfit:'涼爽短袖，防曬，備薄外套應對冷氣',warn:'',week:[{d:'今天',t:'28/22',w:'晴'},{d:'明天',t:'29/23',w:'晴'},{d:'週三',t:'27/21',w:'多雲'},{d:'週四',t:'28/22',w:'晴'},{d:'週五',t:'29/23',w:'晴'},{d:'週六',t:'27/21',w:'多雲'},{d:'週日',t:'28/22',w:'晴'}]},
+  'singapore':{name:'新加坡',  temp:'31',low:'25',unit:'°C',desc:'多雲時晴',rain:'35%',feels:'35°C',humid:'82%',outfit:'輕薄透氣衣物，備雨傘，隨時補充水分',warn:'午後有雷陣雨',week:[{d:'今天',t:'31/25',w:'多雲',rain:true},{d:'明天',t:'30/25',w:'雷陣雨',rain:true},{d:'週三',t:'31/25',w:'多雲'},{d:'週四',t:'32/26',w:'晴'},{d:'週五',t:'31/25',w:'多雲'},{d:'週六',t:'30/24',w:'雷陣雨',rain:true},{d:'週日',t:'31/25',w:'多雲'}]},
+  'hong kong':{name:'香港',    temp:'24',low:'18',unit:'°C',desc:'晴',rain:'15%',feels:'26°C',humid:'70%',outfit:'薄外套，舒適步行鞋',warn:'',week:[{d:'今天',t:'24/18',w:'晴'},{d:'明天',t:'23/17',w:'晴'},{d:'週三',t:'22/16',w:'多雲'},{d:'週四',t:'21/15',w:'小雨',rain:true},{d:'週五',t:'23/17',w:'晴'},{d:'週六',t:'25/19',w:'晴'},{d:'週日',t:'24/18',w:'多雲'}]},
 };
-function getCityWx(city){
-  const k=city.toLowerCase().trim();
-  for(const key of Object.keys(WX_DATA)){if(k.includes(key)||key.includes(k))return WX_DATA[key];}
+
+// Broader city alias matching
+const CITY_ALIASES={
+  '北海道':'hokkaido','hokkaido':'hokkaido','sapporo':'sapporo','札幌':'sapporo',
+  'tokyo':'tokyo','東京':'tokyo','東京都':'tokyo',
+  'osaka':'osaka','大阪':'osaka','kyoto':'kyoto','京都':'kyoto',
+  'seoul':'seoul','首爾':'seoul','서울':'seoul','busan':'busan','釜山':'busan',
+  'bangkok':'bangkok','曼谷':'bangkok','bkk':'bangkok',
+  'kl':'kuala lumpur','kuala lumpur':'kuala lumpur','吉隆坡':'kuala lumpur','malaysia':'kuala lumpur',
+  'paris':'paris','巴黎':'paris','france':'paris',
+  'taipei':'taipei','台北':'taipei','新北':'taipei',
+  'kaohsiung':'kaohsiung','高雄':'kaohsiung',
+  'singapore':'singapore','新加坡':'singapore','sg':'singapore',
+  'hong kong':'hong kong','香港':'hong kong','hk':'hong kong',
+};
+
+function getCityWx(cityInput){
+  if(!cityInput)return null;
+  const k=cityInput.toLowerCase().trim();
+  // direct alias lookup
+  for(const [alias,key] of Object.entries(CITY_ALIASES)){
+    if(k.includes(alias.toLowerCase())||alias.toLowerCase().includes(k)){
+      if(WX_DATA[key])return WX_DATA[key];
+    }
+  }
+  // fallback: partial match in WX_DATA keys
+  for(const key of Object.keys(WX_DATA)){
+    if(k.includes(key)||key.includes(k))return WX_DATA[key];
+  }
   return null;
 }
+
+// ── Real weather via OpenWeatherMap ──────────────────────────
+const wxCache = {};  // city -> {current, forecast, ts}
+
+async function fetchWeather(city) {
+  if (!city) return null;
+  const key = city.toLowerCase().trim();
+  // return cache if < 10 min old
+  if (wxCache[key] && Date.now() - wxCache[key].ts < 600000) return wxCache[key];
+  try {
+    const [curRes, fcRes] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OWM_KEY}&units=metric&lang=zh_tw`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${OWM_KEY}&units=metric&lang=zh_tw&cnt=40`)
+    ]);
+    if (!curRes.ok) return null;
+    const cur = await curRes.json();
+    const fc = fcRes.ok ? await fcRes.json() : null;
+    const result = { cur, fc, ts: Date.now() };
+    wxCache[key] = result;
+    return result;
+  } catch(e) { return null; }
+}
+
+function buildDayForecast(fc) {
+  if (!fc) return [];
+  const days = {};
+  const weekDays = ['週日','週一','週二','週三','週四','週五','週六'];
+  fc.list.forEach(item => {
+    const d = new Date(item.dt * 1000);
+    const dateStr = d.toLocaleDateString('zh-TW');
+    if (!days[dateStr]) days[dateStr] = { temps: [], rain: false, desc: item.weather[0].description, d };
+    days[dateStr].temps.push(item.main.temp);
+    if (item.weather[0].main === 'Rain' || item.weather[0].main === 'Drizzle' || item.weather[0].main === 'Thunderstorm') {
+      days[dateStr].rain = true;
+    }
+  });
+  const today = new Date().toLocaleDateString('zh-TW');
+  return Object.entries(days).slice(0, 7).map(([dateStr, info], i) => {
+    const hi = Math.round(Math.max(...info.temps));
+    const lo = Math.round(Math.min(...info.temps));
+    const label = i === 0 ? '今天' : i === 1 ? '明天' : weekDays[info.d.getDay()];
+    return { d: label, t: `${hi}/${lo}`, w: info.desc, rain: info.rain };
+  });
+}
+
+function getOutfitAdvice(temp, rain) {
+  let outfit = '';
+  if (temp >= 30) outfit = '涼爽透氣短袖，防曬乳必備，室內冷氣強請備外套';
+  else if (temp >= 24) outfit = '短袖或薄長袖，備薄外套應對冷氣';
+  else if (temp >= 18) outfit = '薄外套或長袖，早晚稍涼請多帶一件';
+  else if (temp >= 12) outfit = '中厚外套，多層次穿搭';
+  else if (temp >= 5)  outfit = '厚外套＋保暖衣物，帽子手套建議攜帶';
+  else                  outfit = '羽絨外套＋發熱衣，帽子手套圍巾全上';
+  if (rain) outfit += '，今日有降雨請攜帶雨傘';
+  return outfit;
+}
+
 function updateWxCitySel(){
   const t=trip();if(!t)return;
   const locs=[];
-  if(t.city)locs.push(t.city);
-  t.days.forEach(d=>d.events.forEach(e=>{if(e.loc&&e.loc.trim()&&!locs.includes(e.loc))locs.push(e.loc);}));
+  if(t.city&&t.city.trim())locs.push(t.city);
+  t.days.forEach(d=>d.events.forEach(e=>{
+    if(e.loc&&e.loc.trim()){
+      const parts=e.loc.split(',');
+      const city=parts[parts.length>2?parts.length-2:0].trim();
+      if(city&&!locs.some(l=>l.toLowerCase()===city.toLowerCase()))locs.push(city);
+      if(!locs.includes(e.loc))locs.push(e.loc);
+    }
+  }));
   const sel=document.getElementById('wx-city-sel');
   if(!sel)return;
   sel.innerHTML='<option value="">— 選擇城市查看天氣 —</option>'+locs.map(l=>`<option value="${l}">${l}</option>`).join('');
-  // auto-select first
   if(locs.length>0){sel.value=locs[0];updateWeatherTab();}
 }
-function updateWeatherTab(){
+
+async function updateWeatherTab(){
   const sel=document.getElementById('wx-city-sel');
   if(!sel)return;
   const city=sel.value;
-  const wx=city?getCityWx(city):null;
   const card=document.getElementById('wx-today-card');
+  const weekCard=document.getElementById('wx-week-card');
   const outCard=document.getElementById('wx-outfit-card');
-  if(!wx){card.style.display='none';outCard.style.display='none';return;}
-  card.style.display='block';outCard.style.display='block';
-  document.getElementById('wx-today-hd').textContent=`${wx.name} · 今日天氣`;
-  document.getElementById('wx-today-temp').textContent=`${wx.temp} / ${wx.low}`;
+  if(!city){card.style.display='none';weekCard.style.display='none';outCard.style.display='none';return;}
+
+  // show loading
+  card.style.display='block';
+  document.getElementById('wx-today-hd').textContent=city+' · 載入中…';
+  document.getElementById('wx-today-temp').textContent='—';
+  document.getElementById('wx-today-desc').textContent='';
+
+  const data = await fetchWeather(city);
+
+  if(!data){
+    // fallback to demo data
+    const wx=getCityWx(city);
+    if(!wx){card.style.display='none';weekCard.style.display='none';outCard.style.display='none';showToast('找不到城市，請輸入英文城市名');return;}
+    renderWxFromDemo(wx);return;
+  }
+
+  const cur=data.cur;
+  const temp=Math.round(cur.main.temp);
+  const low=Math.round(cur.main.temp_min);
+  const hi=Math.round(cur.main.temp_max);
+  const feels=Math.round(cur.main.feels_like);
+  const humid=cur.main.humidity;
+  const desc=cur.weather[0].description;
+  const isRain=['Rain','Drizzle','Thunderstorm'].includes(cur.weather[0].main);
+  const cityName=cur.name;
+
+  // today card
+  card.style.display='block';weekCard.style.display='block';outCard.style.display='block';
+  document.getElementById('wx-today-hd').textContent=cityName+' · 今日天氣';
+  document.getElementById('wx-today-temp').textContent=`${temp}° / ${low}°C`;
+  document.getElementById('wx-today-desc').textContent=desc;
+  document.getElementById('wx-rain-pct').textContent=isRain?'有雨':'無雨';
+  document.getElementById('wx-feels').textContent=feels+'°C';
+  document.getElementById('wx-humid').textContent=humid+'%';
+
+  // 7-day forecast
+  const days=buildDayForecast(data.fc);
+  const weekRows=document.getElementById('wx-week-rows');
+  weekRows.innerHTML=days.map((d,i)=>`
+    <div class="wx-dr${i===0?' tdr':''}">
+      <span class="wx-dlbl${i===0?' tl':''}">${d.d}</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${d.rain?'var(--warn)':'var(--stone-m)'}" stroke-width="1.4" stroke-linecap="round">
+        ${d.rain
+          ?'<path d="M20 17.58A5 5 0 0018 8h-1.26A8 8 0 104 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="17"/><line x1="16" y1="19" x2="16" y2="21"/>'
+          :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>'}
+      </svg>
+      <span class="wx-dcond">${d.w}</span>
+      <span class="wx-dtemp">${d.t}°C</span>
+      <span class="wx-dpct ${d.rain?'pwarn':'pok'}">${d.rain?'有雨':'無雨'}</span>
+    </div>`).join('');
+
+  // outfit
+  const outfit=getOutfitAdvice(temp,isRain);
+  document.getElementById('outfit-main').textContent=outfit;
+  const warnEl=document.getElementById('outfit-warn');
+  if(isRain||temp<0){warnEl.style.display='block';warnEl.textContent=temp<0?'氣溫極低，防寒保暖為第一優先':'今日有降雨，請攜帶雨傘或雨衣';}
+  else{warnEl.style.display='none';}
+
+  // home weather update
+  const homeTemp=document.getElementById('wx-temp');
+  const homeDesc=document.getElementById('wx-desc');
+  const homeRain=document.getElementById('wx-rain');
+  const homeOutfit=document.getElementById('wx-outfit');
+  if(homeTemp)homeTemp.textContent=`${temp}° / ${low}°C`;
+  if(homeDesc)homeDesc.textContent=desc;
+  if(homeRain)homeRain.textContent=isRain?'今日有降雨，請帶傘':'';
+  if(homeOutfit)homeOutfit.textContent=outfit.split('，')[0];
+}
+
+function renderWxFromDemo(wx){
+  const card=document.getElementById('wx-today-card');
+  const weekCard=document.getElementById('wx-week-card');
+  const outCard=document.getElementById('wx-outfit-card');
+  card.style.display='block';weekCard.style.display='block';outCard.style.display='block';
+  document.getElementById('wx-today-hd').textContent=wx.name+' · 今日天氣（示範資料）';
+  document.getElementById('wx-today-temp').textContent=wx.temp+' / '+wx.low+wx.unit;
   document.getElementById('wx-today-desc').textContent=wx.desc;
   document.getElementById('wx-rain-pct').textContent=wx.rain;
   document.getElementById('wx-feels').textContent=wx.feels;
   document.getElementById('wx-humid').textContent=wx.humid;
-  document.getElementById('outfit-main').textContent='👗 '+wx.outfit;
+  const weekRows=document.getElementById('wx-week-rows');
+  weekRows.innerHTML=(wx.week||[]).map((d,i)=>`
+    <div class="wx-dr${i===0?' tdr':''}">
+      <span class="wx-dlbl${i===0?' tl':''}">${d.d}</span>
+      <span class="wx-dcond">${d.w}</span>
+      <span class="wx-dtemp">${d.t+wx.unit}</span>
+      <span class="wx-dpct ${d.rain?'pwarn':'pok'}">${d.rain?'有雨':'無雨'}</span>
+    </div>`).join('');
+  document.getElementById('outfit-main').textContent=wx.outfit;
   const warnEl=document.getElementById('outfit-warn');
-  if(wx.warn){warnEl.style.display='block';warnEl.textContent='⚠️ '+wx.warn;}
-  else{warnEl.style.display='none';}
-  // update home wx
-  document.getElementById('wx-temp').textContent=`${wx.temp} / ${wx.low}`;
-  document.getElementById('wx-desc').textContent=wx.desc;
-  document.getElementById('wx-rain').textContent=wx.warn||'';
-  document.getElementById('wx-outfit').textContent=wx.outfit.split('，')[0];
+  if(wx.warn){warnEl.style.display='block';warnEl.textContent=wx.warn;}
+  else warnEl.style.display='none';
+  const homeTemp=document.getElementById('wx-temp');
+  if(homeTemp){homeTemp.textContent=wx.temp+' / '+wx.low+wx.unit;}
+  const homeDesc=document.getElementById('wx-desc');
+  if(homeDesc)homeDesc.textContent=wx.desc;
+  const homeRain=document.getElementById('wx-rain');
+  if(homeRain)homeRain.textContent=wx.warn||'';
+  const homeOutfit=document.getElementById('wx-outfit');
+  if(homeOutfit)homeOutfit.textContent=wx.outfit.split('，')[0];
 }
 
-/* ══ MAP ══ */
+
 function renderMap(){
   const t=trip();if(!t)return;
   const spots=[];
@@ -1048,8 +1237,11 @@ function renderDetail(){
   } else { flightEl.innerHTML=''; }
   document.getElementById('home-trip-name').textContent=t.name;
   document.getElementById('home-trip-day').textContent=todayDay?todayDay.label:'';
-  const total=(t.expenses||[]).reduce((a,e)=>a+e.amt,0);
-  document.getElementById('home-spend').textContent=total>0?total.toLocaleString()+' '+((t.expenses||[])[0]?.cur||TWD):'0';
+  const todayStr=new Date().toISOString().split('T')[0];
+  const todayExps=(t.expenses||[]).filter(e=>e.date===todayStr);
+  const todayTotal=todayExps.reduce((a,e)=>a+e.amt,0);
+  const todayCur=todayExps.length?todayExps[0].cur:'';
+  document.getElementById('home-spend').textContent=todayTotal>0?todayTotal.toLocaleString()+(todayCur?' '+todayCur:''):'0';
 }
 
 /* PICKER */
@@ -1061,7 +1253,7 @@ function renderPicker(){
       ${i===S.curIdx?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </div>`).join('');
 }
-function selectTrip(i){S.curIdx=i;save();renderAll();closeOv('ov-picker');showToast('\u5df2\u5207\u63db\uff1a'+S.trips[i].name);}
+function selectTrip(i){S.curIdx=i;save();renderAll();updateWxCitySel();closeOv('ov-picker');showToast('\u5df2\u5207\u63db\uff1a'+S.trips[i].name);}
 
 /* CHECKLIST */
 function renderChk(){
@@ -1090,7 +1282,7 @@ function delChk(ci,ii){S.checklist[ci].items.splice(ii,1);save();renderChk();sho
 function addChk(ci){
   const inp=document.getElementById('ai-'+ci);const val=inp.value.trim();
   if(!val)return;
-  S.checklist[ci].items.push({n:val,d:false,t:''});save();renderChk();showToast('\u2705 \u5df2\u52a0\u5165\uff1a'+val);
+  S.checklist[ci].items.push({n:val,d:false,t:''});save();renderChk();showToast('\u5df2\u52a0\u5165\uff1a'+val);
 }
 
 /* TOAST */
