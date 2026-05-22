@@ -252,7 +252,7 @@ svg.ico{display:inline-block;vertical-align:middle;}
 <body>
 
 <div id="splash">
-  <canvas id="sp-c" width="110" height="110" style="margin-bottom:20px;"></canvas>
+  <canvas id="sp-c" width="120" height="120" style="width:120px;height:120px;margin-bottom:20px;"></canvas>
   <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--ink);letter-spacing:.05em;">Ryoki</div>
   <div style="font-family:'Noto Serif TC',serif;font-size:11px;color:var(--ink-t);letter-spacing:.28em;margin-top:4px;">旅 跡</div>
   <div class="sp-dot"></div>
@@ -277,9 +277,18 @@ svg.ico{display:inline-block;vertical-align:middle;}
 <div class="scr" id="s-home">
   <div class="topbar">
     <div class="logo">Ryoki <span class="logo-sub">旅跡</span></div>
-    <button class="iBtn" onclick="openOv('ov-new-trip')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="iBtn" onclick="exportData()" title="備份資料">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <label class="iBtn" title="匯入資料" style="cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 5 12 0 17 5"/><line x1="12" y1="0" x2="12" y2="13"/></svg>
+        <input type="file" accept=".json" style="display:none;" onchange="importData(event)">
+      </label>
+      <button class="iBtn" onclick="openOv('ov-new-trip')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
   </div>
   <div class="scrl">
     <div class="trip-bar">
@@ -435,7 +444,7 @@ svg.ico{display:inline-block;vertical-align:middle;}
 <div class="scr off" id="s-exp">
   <div class="topbar">
     <div style="font-family:'Noto Serif TC',serif;font-size:18px;color:var(--ink);">記帳</div>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:6px;">
       <button class="iBtn" onclick="openOv('ov-add-member')" title="新增成員">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
       </button>
@@ -825,14 +834,13 @@ function addMember(){
 function renderMemberDisplay(){
   const t=trip();if(!t)return;
   const members=t.members||['我'];
-  document.getElementById('current-members').textContent=members.join('、');
-  // payer chips
+  // null-safe: these elements only exist inside overlays
+  const cm=document.getElementById('current-members');
+  if(cm)cm.textContent=members.join('、');
   const pc=document.getElementById('payer-chips');
-  pc.innerHTML=members.map((m,i)=>`<div class="m-chip${i===0?' sel':''}" onclick="selectPayer(this)">${m}</div>`).join('');
-  // split chips (all selected by default)
+  if(pc)pc.innerHTML=members.map((m,i)=>`<div class="m-chip${i===0?' sel':''}" onclick="selectPayer(this)">${m}</div>`).join('');
   const sc=document.getElementById('split-chips');
-  sc.innerHTML=members.map(m=>`<div class="m-chip sel" onclick="toggleChip(this)">${m}</div>`).join('');
-  // settle
+  if(sc)sc.innerHTML=members.map(m=>`<div class="m-chip sel" onclick="toggleChip(this)">${m}</div>`).join('');
   renderSettle();
 }
 function selectPayer(el){document.getElementById('payer-chips').querySelectorAll('.m-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
@@ -1300,26 +1308,126 @@ function renderAll(){
 
 /* SPLASH ICON */
 function drawIcon(){
-  const c=document.getElementById('sp-c');const ctx=c.getContext('2d');
-  c.width=110;c.height=110;ctx.clearRect(0,0,110,110);
-  ctx.strokeStyle='#7a9e84';ctx.lineWidth=1.8;ctx.lineCap='round';
-  ctx.beginPath();ctx.arc(32,32,9,0,Math.PI*2);ctx.stroke();
-  [[32,17,32,11],[32,47,32,53],[47,32,53,32],[17,32,11,32],[42,22,47,17],[22,42,17,47],[42,42,47,47],[22,22,17,17]].forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
-  ctx.strokeStyle='#9e9a8c';ctx.lineWidth=1.3;
-  [[66,26,74,26],[78,20,86,20]].forEach(([x1,m,x2])=>{ctx.beginPath();ctx.moveTo(x1,m+3);ctx.quadraticCurveTo((x1+x2)/2,m-2,x2,m+3);ctx.stroke();});
-  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=2;ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(6,90);ctx.lineTo(42,28);ctx.lineTo(78,76);ctx.lineTo(92,54);ctx.lineTo(104,90);ctx.stroke();
-  ctx.fillStyle='#e8f2e8';ctx.beginPath();ctx.moveTo(34,42);ctx.lineTo(42,28);ctx.lineTo(50,42);ctx.closePath();ctx.fill();ctx.stroke();
-  ctx.strokeStyle='#5a8f6a';ctx.lineWidth=1.3;ctx.globalAlpha=.4;ctx.beginPath();ctx.moveTo(6,90);ctx.lineTo(104,90);ctx.stroke();ctx.globalAlpha=1;
-  ctx.globalAlpha=.6;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(85,90);ctx.lineTo(85,74);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(78,82);ctx.lineTo(85,70);ctx.lineTo(92,82);ctx.stroke();ctx.globalAlpha=1;
-  const ic=document.createElement('canvas');ic.width=180;ic.height=180;const ix=ic.getContext('2d');
-  const r=38;ix.beginPath();ix.moveTo(r,0);ix.lineTo(180-r,0);ix.quadraticCurveTo(180,0,180,r);
-  ix.lineTo(180,180-r);ix.quadraticCurveTo(180,180,180-r,180);ix.lineTo(r,180);ix.quadraticCurveTo(0,180,0,180-r);
-  ix.lineTo(0,r);ix.quadraticCurveTo(0,0,r,0);ix.fillStyle='#f0ece5';ix.fill();ix.drawImage(c,35,35,110,110);
-  document.getElementById('pwa-icon').href=ic.toDataURL('image/png');
-}
+  const c=document.getElementById('sp-c');
+  const ctx=c.getContext('2d');
+  const W=120,H=120;
+  c.width=W;c.height=H;
+  ctx.clearRect(0,0,W,H);
 
+  // sky gradient background circle
+  const skyGrad=ctx.createLinearGradient(0,0,0,H*0.7);
+  skyGrad.addColorStop(0,'#e8f4ec');
+  skyGrad.addColorStop(1,'#f5ede4');
+  ctx.beginPath();ctx.arc(W/2,H/2,W/2,0,Math.PI*2);
+  ctx.fillStyle=skyGrad;ctx.fill();
+
+  // far mountain (background, softer)
+  ctx.beginPath();
+  ctx.moveTo(0,H*0.78);
+  ctx.lineTo(W*0.25,H*0.42);
+  ctx.lineTo(W*0.45,H*0.62);
+  ctx.lineTo(W*0.6,H*0.48);
+  ctx.lineTo(W,H*0.78);
+  ctx.closePath();
+  ctx.fillStyle='#cddfd2';ctx.fill();
+
+  // main mountain fill
+  ctx.beginPath();
+  ctx.moveTo(W*0.05,H*0.88);
+  ctx.lineTo(W*0.38,H*0.22);
+  ctx.lineTo(W*0.72,H*0.65);
+  ctx.lineTo(W*0.84,H*0.48);
+  ctx.lineTo(W*0.97,H*0.88);
+  ctx.closePath();
+  const mtnGrad=ctx.createLinearGradient(0,H*0.2,0,H*0.88);
+  mtnGrad.addColorStop(0,'#7ab88a');
+  mtnGrad.addColorStop(1,'#5a8f6a');
+  ctx.fillStyle=mtnGrad;ctx.fill();
+
+  // main mountain outline
+  ctx.beginPath();
+  ctx.moveTo(W*0.05,H*0.88);
+  ctx.lineTo(W*0.38,H*0.22);
+  ctx.lineTo(W*0.72,H*0.65);
+  ctx.lineTo(W*0.84,H*0.48);
+  ctx.lineTo(W*0.97,H*0.88);
+  ctx.strokeStyle='#3d7050';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+
+  // snow cap fill
+  ctx.beginPath();
+  ctx.moveTo(W*0.29,H*0.38);
+  ctx.lineTo(W*0.38,H*0.22);
+  ctx.lineTo(W*0.47,H*0.38);
+  ctx.closePath();
+  ctx.fillStyle='#eef7ef';ctx.fill();
+  ctx.strokeStyle='#3d7050';ctx.lineWidth=1.8;ctx.stroke();
+
+  // horizon line
+  ctx.beginPath();
+  ctx.moveTo(W*0.04,H*0.88);ctx.lineTo(W*0.96,H*0.88);
+  ctx.strokeStyle='#3d7050';ctx.lineWidth=2;ctx.globalAlpha=0.35;ctx.stroke();ctx.globalAlpha=1;
+
+  // foreground trees
+  function drawTree(x,h,opacity){
+    ctx.globalAlpha=opacity;
+    ctx.strokeStyle='#3d7050';ctx.lineWidth=2.2;ctx.lineCap='round';
+    // trunk
+    ctx.beginPath();ctx.moveTo(x,H*0.88);ctx.lineTo(x,H*0.88-h);ctx.stroke();
+    // triangle canopy
+    ctx.beginPath();
+    ctx.moveTo(x-h*0.55,H*0.88-h*0.35);
+    ctx.lineTo(x,H*0.88-h*1.05);
+    ctx.lineTo(x+h*0.55,H*0.88-h*0.35);
+    ctx.closePath();
+    ctx.fillStyle='#5a8f6a';ctx.fill();
+    ctx.strokeStyle='#3d7050';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  drawTree(W*0.78,14,0.85);
+  drawTree(W*0.87,10,0.65);
+  drawTree(W*0.92,12,0.5);
+
+  // sun - warm filled circle with soft glow
+  ctx.save();
+  // glow
+  const glow=ctx.createRadialGradient(W*0.78,H*0.2,2,W*0.78,H*0.2,16);
+  glow.addColorStop(0,'rgba(255,210,120,0.5)');
+  glow.addColorStop(1,'rgba(255,210,120,0)');
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(W*0.78,H*0.2,16,0,Math.PI*2);ctx.fill();
+  // sun body
+  ctx.beginPath();ctx.arc(W*0.78,H*0.2,7,0,Math.PI*2);
+  ctx.fillStyle='#f0c060';ctx.fill();
+  ctx.strokeStyle='#d4963a';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.restore();
+
+  // birds (simple arcs, softened)
+  ctx.strokeStyle='#6a8870';ctx.lineWidth=1.6;ctx.lineCap='round';
+  [[W*0.52,H*0.14,8],[W*0.43,H*0.2,6]].forEach(([bx,by,sz])=>{
+    ctx.beginPath();
+    ctx.moveTo(bx-sz,by+sz*0.4);
+    ctx.quadraticCurveTo(bx,by-sz*0.3,bx+sz,by+sz*0.4);
+    ctx.stroke();
+  });
+
+  // make rounded PWA icon (180x180)
+  const ic=document.createElement('canvas');ic.width=180;ic.height=180;
+  const ix=ic.getContext('2d');
+  // bg with gradient
+  const bgGrad=ix.createLinearGradient(0,0,180,180);
+  bgGrad.addColorStop(0,'#eef6f0');bgGrad.addColorStop(1,'#f5ede4');
+  const r=40;
+  ix.beginPath();ix.moveTo(r,0);ix.lineTo(180-r,0);ix.quadraticCurveTo(180,0,180,r);
+  ix.lineTo(180,180-r);ix.quadraticCurveTo(180,180,180-r,180);
+  ix.lineTo(r,180);ix.quadraticCurveTo(0,180,0,180-r);
+  ix.lineTo(0,r);ix.quadraticCurveTo(0,0,r,0);ix.closePath();
+  ix.fillStyle=bgGrad;ix.fill();
+  // draw art centered with slight padding
+  ix.drawImage(c,28,28,124,124);
+  document.getElementById('pwa-icon').href=ic.toDataURL('image/png');
+
+  // also update splash canvas size for display
+  c.style.width='110px';c.style.height='110px';
+}
 /* INIT */
 window.addEventListener('DOMContentLoaded',()=>{
   load();drawIcon();
