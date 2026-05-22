@@ -1222,27 +1222,31 @@ function renderDetail(){
         </div>
       `).join('')||`<div style="padding:10px 0;font-size:12px;color:var(--ink-t);">\u5c1a\u7121\u4e8b\u4ef6\uff0c\u9ede\u64ca + \u65b0\u589e</div>`}
     </div>`).join('');
-  // home tl
+  // home 3-section tl
   const todayDay=t.days.find(d=>d.today)||t.days[0];
-  document.getElementById('home-tl').innerHTML=todayDay?[...todayDay.events].sort((a,b)=>a.time.localeCompare(b.time)).slice(0,4).map((ev,i,arr)=>`
-    <div class="tl-row">
-      <div class="tl-spine"><div class="tl-time">${ev.time}</div><div class="tl-dot${ev.done?' on':''}"></div>${i<arr.length-1?'<div class="tl-stem"></div>':''}</div>
-      <div class="tl-card${ev.now?' now':''}">
-        <div class="tl-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">${tagIcon(ev.tag)}</svg> ${ev.tag}</div>
-        <div class="tl-ttl">${ev.name}</div>
-        ${ev.note?`<div class="tl-sub">${ev.note}</div>`:''}
-        ${ev.loc?`<div class="tl-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.loc}</div>`:''}
-      </div>
-    </div>`).join(''):'';
-  // home flight
-  const flightEl=document.getElementById('home-flight-wrap');
-  const allTodayEvs=todayDay?.events||[];
-  const todayFlights=allTodayEvs.filter(e=>e.flightKey);
-  if(todayFlights.length){
-    const fk=todayFlights[0].flightKey;
-    const f=FLIGHTS[fk];
-    flightEl.innerHTML=f?`<div class="fc"><div class="fc-top"><span class="fc-badge">${f.status==='\u6e96\u6642'?'\u2705 \u6e96\u6642':'\u26a0\ufe0f '+f.status}</span><span class="fc-num">${fk}</span></div><div class="fc-route"><div><div class="fc-city">${f.dep}</div><div class="fc-a">${f.depApt}</div></div><div class="fc-mid"><div class="fc-ln"></div><svg class="fc-pl" width="14" height="14" viewBox="0 0 24 24" fill="var(--sage-m)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg><div class="fc-ln"></div></div><div style="text-align:right"><div class="fc-city">${f.arr}</div><div class="fc-a" style="text-align:right">${f.arrApt}</div></div></div><div class="fc-times"><div><div class="fc-t">${f.depTime}</div></div><div><div class="fc-t">${f.arrTime}</div></div></div><div class="fc-status"><div class="fc-ok"></div>\u884c\u674e\u984d\u5ea6 23kg</div></div>`:'';
-  } else { flightEl.innerHTML=''; }
+  let todayDayIdx=t.days.findIndex(d=>d.today);
+  if(todayDayIdx<0)todayDayIdx=0;
+  function makeTlCards(events,limit){
+    const sorted=[...events].sort((a,b)=>a.time.localeCompare(b.time));
+    const shown=limit?sorted.slice(0,limit):sorted;
+    if(!shown.length)return '<div style="padding:8px 0 8px 0;font-size:12px;color:var(--ink-t);">無行程</div>';
+    return shown.map((ev,i,arr)=>`
+      <div class="tl-row">
+        <div class="tl-spine"><div class="tl-time">${ev.time}</div><div class="tl-dot${ev.done?' on':''}"></div>${i<arr.length-1?'<div class="tl-stem"></div>':''}</div>
+        <div class="tl-card${ev.now?' now':''}">
+          <div class="tl-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">${tagIcon(ev.tag)}</svg> ${ev.tag}</div>
+          <div class="tl-ttl">${ev.name}</div>
+          ${ev.note?`<div class="tl-sub">${ev.note}</div>`:''}
+          ${ev.loc?`<div class="tl-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.loc}</div>`:''}
+        </div>
+      </div>`).join('');
+  }
+  const doneEl=document.getElementById('home-tl-done');
+  const todayEl=document.getElementById('home-tl-today');
+  const futureEl=document.getElementById('home-tl-future');
+  if(doneEl)doneEl.innerHTML=makeTlCards(t.days.slice(0,todayDayIdx).flatMap(d=>d.events),3);
+  if(todayEl)todayEl.innerHTML=makeTlCards(t.days[todayDayIdx]?.events||[],0);
+  if(futureEl)futureEl.innerHTML=makeTlCards(t.days.slice(todayDayIdx+1).flatMap(d=>d.events),3);
   document.getElementById('home-trip-name').textContent=t.name;
   document.getElementById('home-trip-day').textContent=todayDay?todayDay.label:'';
   const todayStr=new Date().toISOString().split('T')[0];
@@ -1313,120 +1317,102 @@ function drawIcon(){
   const W=120,H=120;
   c.width=W;c.height=H;
   ctx.clearRect(0,0,W,H);
+  ctx.lineCap='round';ctx.lineJoin='round';
 
-  // sky gradient background circle
-  const skyGrad=ctx.createLinearGradient(0,0,0,H*0.7);
-  skyGrad.addColorStop(0,'#e8f4ec');
-  skyGrad.addColorStop(1,'#f5ede4');
+  // background — warm cream circle
   ctx.beginPath();ctx.arc(W/2,H/2,W/2,0,Math.PI*2);
-  ctx.fillStyle=skyGrad;ctx.fill();
+  ctx.fillStyle='#f5f0e8';ctx.fill();
 
-  // far mountain (background, softer)
-  ctx.beginPath();
-  ctx.moveTo(0,H*0.78);
-  ctx.lineTo(W*0.25,H*0.42);
-  ctx.lineTo(W*0.45,H*0.62);
-  ctx.lineTo(W*0.6,H*0.48);
-  ctx.lineTo(W,H*0.78);
-  ctx.closePath();
-  ctx.fillStyle='#cddfd2';ctx.fill();
+  // sun — slightly larger, bolder rays
+  ctx.strokeStyle='#6a9e78';ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.arc(W*0.28,H*0.28,8,0,Math.PI*2);ctx.stroke();
+  [[W*.28,H*.12,W*.28,H*.06],[W*.28,H*.44,W*.28,H*.50],
+   [W*.44,H*.28,W*.50,H*.28],[W*.12,H*.28,W*.06,H*.28],
+   [W*.40,H*.16,W*.44,H*.12],[W*.16,H*.40,W*.12,H*.44],
+   [W*.40,H*.40,W*.44,H*.44],[W*.16,H*.16,W*.12,H*.12]
+  ].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
 
-  // main mountain fill
-  ctx.beginPath();
-  ctx.moveTo(W*0.05,H*0.88);
-  ctx.lineTo(W*0.38,H*0.22);
-  ctx.lineTo(W*0.72,H*0.65);
-  ctx.lineTo(W*0.84,H*0.48);
-  ctx.lineTo(W*0.97,H*0.88);
-  ctx.closePath();
-  const mtnGrad=ctx.createLinearGradient(0,H*0.2,0,H*0.88);
-  mtnGrad.addColorStop(0,'#7ab88a');
-  mtnGrad.addColorStop(1,'#5a8f6a');
-  ctx.fillStyle=mtnGrad;ctx.fill();
-
-  // main mountain outline
-  ctx.beginPath();
-  ctx.moveTo(W*0.05,H*0.88);
-  ctx.lineTo(W*0.38,H*0.22);
-  ctx.lineTo(W*0.72,H*0.65);
-  ctx.lineTo(W*0.84,H*0.48);
-  ctx.lineTo(W*0.97,H*0.88);
-  ctx.strokeStyle='#3d7050';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
-
-  // snow cap fill
-  ctx.beginPath();
-  ctx.moveTo(W*0.29,H*0.38);
-  ctx.lineTo(W*0.38,H*0.22);
-  ctx.lineTo(W*0.47,H*0.38);
-  ctx.closePath();
-  ctx.fillStyle='#eef7ef';ctx.fill();
-  ctx.strokeStyle='#3d7050';ctx.lineWidth=1.8;ctx.stroke();
-
-  // horizon line
-  ctx.beginPath();
-  ctx.moveTo(W*0.04,H*0.88);ctx.lineTo(W*0.96,H*0.88);
-  ctx.strokeStyle='#3d7050';ctx.lineWidth=2;ctx.globalAlpha=0.35;ctx.stroke();ctx.globalAlpha=1;
-
-  // foreground trees
-  function drawTree(x,h,opacity){
-    ctx.globalAlpha=opacity;
-    ctx.strokeStyle='#3d7050';ctx.lineWidth=2.2;ctx.lineCap='round';
-    // trunk
-    ctx.beginPath();ctx.moveTo(x,H*0.88);ctx.lineTo(x,H*0.88-h);ctx.stroke();
-    // triangle canopy
+  // birds — gentle arcs, bolder
+  ctx.strokeStyle='#8aaa90';ctx.lineWidth=1.8;
+  [[W*.60,H*.18,9],[W*.72,H*.12,7]].forEach(([bx,by,sz])=>{
     ctx.beginPath();
-    ctx.moveTo(x-h*0.55,H*0.88-h*0.35);
-    ctx.lineTo(x,H*0.88-h*1.05);
-    ctx.lineTo(x+h*0.55,H*0.88-h*0.35);
-    ctx.closePath();
-    ctx.fillStyle='#5a8f6a';ctx.fill();
-    ctx.strokeStyle='#3d7050';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.globalAlpha=1;
-  }
-  drawTree(W*0.78,14,0.85);
-  drawTree(W*0.87,10,0.65);
-  drawTree(W*0.92,12,0.5);
-
-  // sun - warm filled circle with soft glow
-  ctx.save();
-  // glow
-  const glow=ctx.createRadialGradient(W*0.78,H*0.2,2,W*0.78,H*0.2,16);
-  glow.addColorStop(0,'rgba(255,210,120,0.5)');
-  glow.addColorStop(1,'rgba(255,210,120,0)');
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(W*0.78,H*0.2,16,0,Math.PI*2);ctx.fill();
-  // sun body
-  ctx.beginPath();ctx.arc(W*0.78,H*0.2,7,0,Math.PI*2);
-  ctx.fillStyle='#f0c060';ctx.fill();
-  ctx.strokeStyle='#d4963a';ctx.lineWidth=1.5;ctx.stroke();
-  ctx.restore();
-
-  // birds (simple arcs, softened)
-  ctx.strokeStyle='#6a8870';ctx.lineWidth=1.6;ctx.lineCap='round';
-  [[W*0.52,H*0.14,8],[W*0.43,H*0.2,6]].forEach(([bx,by,sz])=>{
-    ctx.beginPath();
-    ctx.moveTo(bx-sz,by+sz*0.4);
-    ctx.quadraticCurveTo(bx,by-sz*0.3,bx+sz,by+sz*0.4);
+    ctx.moveTo(bx-sz,by+sz*0.5);
+    ctx.quadraticCurveTo(bx,by-sz*0.4,bx+sz,by+sz*0.5);
     ctx.stroke();
   });
 
-  // make rounded PWA icon (180x180)
+  // background hill — lighter, thinner
+  ctx.strokeStyle='#aabfae';ctx.lineWidth=1.6;ctx.globalAlpha=0.7;
+  ctx.beginPath();
+  ctx.moveTo(W*0.0,H*0.82);
+  ctx.lineTo(W*0.22,H*0.58);
+  ctx.lineTo(W*0.38,H*0.70);
+  ctx.lineTo(W*0.52,H*0.60);
+  ctx.lineTo(W*0.65,H*0.82);
+  ctx.stroke();
+  ctx.globalAlpha=1;
+
+  // main mountain — bold outline, clean peaks
+  ctx.strokeStyle='#4a8060';ctx.lineWidth=2.8;
+  ctx.beginPath();
+  ctx.moveTo(W*0.04,H*0.92);
+  ctx.lineTo(W*0.36,H*0.20);   // left peak
+  ctx.lineTo(W*0.62,H*0.58);
+  ctx.lineTo(W*0.76,H*0.38);   // right peak
+  ctx.lineTo(W*0.96,H*0.92);
+  ctx.stroke();
+
+  // snow cap — just the top triangle outline, no fill
+  ctx.strokeStyle='#6aaa80';ctx.lineWidth=1.8;
+  ctx.beginPath();
+  ctx.moveTo(W*0.27,H*0.36);
+  ctx.lineTo(W*0.36,H*0.20);
+  ctx.lineTo(W*0.45,H*0.36);
+  ctx.stroke();
+
+  // horizon line
+  ctx.strokeStyle='#4a8060';ctx.lineWidth=2;ctx.globalAlpha=0.3;
+  ctx.beginPath();ctx.moveTo(W*0.04,H*0.92);ctx.lineTo(W*0.96,H*0.92);ctx.stroke();
+  ctx.globalAlpha=1;
+
+  // trees — clean triangles, line-only
+  function drawTree(x,baseY,h,op){
+    ctx.globalAlpha=op;
+    ctx.strokeStyle='#4a8060';ctx.lineWidth=2;
+    // trunk
+    ctx.beginPath();ctx.moveTo(x,baseY);ctx.lineTo(x,baseY-h*0.4);ctx.stroke();
+    // two triangle layers
+    ctx.lineWidth=1.8;
+    ctx.beginPath();ctx.moveTo(x-h*0.5,baseY-h*0.3);ctx.lineTo(x,baseY-h);ctx.lineTo(x+h*0.5,baseY-h*0.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-h*0.38,baseY-h*0.6);ctx.lineTo(x,baseY-h*1.15);ctx.lineTo(x+h*0.38,baseY-h*0.6);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  drawTree(W*0.76,H*0.92,16,0.9);
+  drawTree(W*0.85,H*0.92,12,0.7);
+  drawTree(W*0.91,H*0.92,10,0.5);
+
+  // path dots at base
+  ctx.fillStyle='#6aaa80';ctx.globalAlpha=0.5;
+  [W*0.18,W*0.26,W*0.34].forEach(x=>{
+    ctx.beginPath();ctx.arc(x,H*0.94,2,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // ── PWA icon (180×180, rounded square) ──
   const ic=document.createElement('canvas');ic.width=180;ic.height=180;
   const ix=ic.getContext('2d');
-  // bg with gradient
-  const bgGrad=ix.createLinearGradient(0,0,180,180);
-  bgGrad.addColorStop(0,'#eef6f0');bgGrad.addColorStop(1,'#f5ede4');
   const r=40;
-  ix.beginPath();ix.moveTo(r,0);ix.lineTo(180-r,0);ix.quadraticCurveTo(180,0,180,r);
+  ix.beginPath();
+  ix.moveTo(r,0);ix.lineTo(180-r,0);ix.quadraticCurveTo(180,0,180,r);
   ix.lineTo(180,180-r);ix.quadraticCurveTo(180,180,180-r,180);
   ix.lineTo(r,180);ix.quadraticCurveTo(0,180,0,180-r);
-  ix.lineTo(0,r);ix.quadraticCurveTo(0,0,r,0);ix.closePath();
-  ix.fillStyle=bgGrad;ix.fill();
-  // draw art centered with slight padding
+  ix.lineTo(0,r);ix.quadraticCurveTo(0,0,r,0);
+  ix.fillStyle='#f5f0e8';ix.fill();
   ix.drawImage(c,28,28,124,124);
   document.getElementById('pwa-icon').href=ic.toDataURL('image/png');
-
-  // also update splash canvas size for display
-  c.style.width='110px';c.style.height='110px';
+  c.style.width='120px';c.style.height='120px';
 }
 /* INIT */
 window.addEventListener('DOMContentLoaded',()=>{
